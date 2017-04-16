@@ -1,0 +1,40 @@
+#set( $body = $input.json("$") )
+
+#define( $loop )
+{
+  #foreach($key in $map.keySet())
+    #set( $k = $util.escapeJavaScript($key) )
+    #set( $v = $util.escapeJavaScript($map.get($key)).replaceAll("\\\\'", "'") )
+    "$k":
+      "$v"
+      #if( $foreach.hasNext ) , #end
+  #end
+}
+#end
+
+{
+  "body" : $body,
+  "method": "$context.httpMethod",
+  "principalId": "$context.authorizer.principalId",
+  "stage": "$context.stage",
+
+  "apiRequestId" : "$context.requestId",
+
+  #set( $privetToken = $input.params().header.get("X-Privet-Token") )
+  "privetToken" : "$privetToken",
+
+  #set( $map = $input.params().header )
+  "headers": $loop,
+
+  #set( $map = $input.params().querystring )
+  "query": $loop,
+
+  #set( $map = $input.params().path )
+  "path": $loop,
+
+  #set( $map = $context.identity )
+  "identity": $loop,
+
+  #set( $map = $stageVariables )
+  "stageVariables": $loop
+}

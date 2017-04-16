@@ -124,6 +124,33 @@ functions:
             template:
               application/json: ${file(api-local/info.req.vm)}
 
+  session:
+    handler: api-local/session.handler
+    events:
+      - http:
+          path: scanners/{scannerId}/privet/twaindirect/session
+          method: post
+          cors:
+            origins:
+              - '*'
+            headers:
+              # common CORS/AWS headers
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Date
+              - X-Amz-Security-Token
+              # custom headers we rely on
+              - X-Privet-Token
+            allowCredentials: false
+          integration: lambda
+          request:
+            parameters:
+              paths:
+                scannerId: true
+            template:
+              application/json: ${file(api-local/session.req.vm)}
+
 
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
