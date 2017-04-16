@@ -28,5 +28,8 @@
     "serverless": "^1.11.0",
     "serverless-offline": "^3.13.3",
     "serverless-plugin-optimize": "^2.0.1-rc.1"
+  },
+  "dependencies": {
+    "uuid": "^3.0.1"
   }
 }

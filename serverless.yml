@@ -65,17 +65,33 @@ provider:
 #    - exclude-me.js
 #    - exclude-me-dir/**
 
-functions:
-  hello:
-    handler: handler.hello
 
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
+functions:
+  info:
+    handler: api/info.handler
     events:
       - http:
-          path: hello
+          path: privet/info
           method: get
+          cors:
+            origins:
+              - '*'
+            headers:
+              # common CORS/AWS headers
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Date
+              - X-Amz-Security-Token
+              # custom headers we rely on
+              - X-Privet-Token
+            allowCredentials: false
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(api/info.req.vm)}
+
+
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
