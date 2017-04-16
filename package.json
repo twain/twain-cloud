@@ -23,6 +23,7 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/atala-proto-team/twain-cloud#readme",
   "devDependencies": {
+    "aws-sdk": "^2.41.0",
     "babel-preset-es2016": "^6.24.1",
     "eslint": "^3.19.0",
     "serverless": "^1.11.0",
@@ -30,6 +31,7 @@
     "serverless-plugin-optimize": "^2.0.1-rc.1"
   },
   "dependencies": {
+    "dynamodb-doc": "^1.0.0",
     "uuid": "^3.0.1"
   }
 }
