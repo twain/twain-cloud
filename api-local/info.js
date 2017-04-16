@@ -1,10 +1,6 @@
 'use strict';
 
-const uuid = require('uuid');
-
 module.exports.handler = (event, context, callback) => {
-
-  const token = uuid.v4();
 
   const body = {
     'version': '1.0',
@@ -23,7 +19,7 @@ module.exports.handler = (event, context, callback) => {
     'setup_url': '',
     'support_url': '',
     'update_url': '',
-    'x-privet-token': token, // TODO: scanner should supply the token
+    'x-privet-token': event.path.scannerId, // TODO: scanner should supply the token
     'api': [
       '/privet/twaindirect/session'
     ],

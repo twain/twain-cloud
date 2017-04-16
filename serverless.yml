@@ -67,11 +67,33 @@ provider:
 
 
 functions:
-  info:
-    handler: api/info.handler
+
+  scanners:
+    handler: api-cloud/scanners.handler
     events:
       - http:
-          path: privet/info
+          path: scanners
+          method: get
+          cors:
+            origins:
+              - '*'
+            headers:
+              # common CORS/AWS headers
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Date
+              - X-Amz-Security-Token
+              # custom headers we rely on
+              - X-Privet-Token
+            allowCredentials: false
+          integration: lambda
+
+  info:
+    handler: api-local/info.handler
+    events:
+      - http:
+          path: scanners/{scannerId}/privet/info/{proxy+}
           method: get
           cors:
             origins:
@@ -88,8 +110,11 @@ functions:
             allowCredentials: false
           integration: lambda
           request:
+            parameters:
+              paths:
+                scannerId: true
             template:
-              application/json: ${file(api/info.req.vm)}
+              application/json: ${file(api-local/info.req.vm)}
 
 
 #      - s3: ${env:BUCKET}
