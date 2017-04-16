@@ -1,0 +1,25 @@
+{
+  "name": "twain-cloud",
+  "version": "1.0.0",
+  "description": "Atalasoft TWAIN Cloud implementation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://kolomietsdmitry@bitbucket.org/atala-proto-team/twain-cloud.git"
+  },
+  "keywords": [
+    "TWAIN",
+    "direct",
+    "cloud",
+    "Atalasoft"
+  ],
+  "author": "Atalasoft",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/atala-proto-team/twain-cloud#readme",
+  "devDependencies": {
+    "serverless": "^1.11.0"
+  }
+}
