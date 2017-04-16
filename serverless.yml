@@ -36,6 +36,14 @@ provider:
   stage: dev
   region: us-east-1
 
+package:
+  individually: true
+  exclude:
+    - src/**
+    - test/**
+    - node_modules/**
+
+
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
 #    - Effect: "Allow"
@@ -93,7 +101,7 @@ functions:
     handler: api-local/info.handler
     events:
       - http:
-          path: scanners/{scannerId}/privet/info/{proxy+}
+          path: scanners/{scannerId}/privet/info
           method: get
           cors:
             origins:
