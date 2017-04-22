@@ -16,14 +16,6 @@ module.exports.getScanners = (event, context, callback) => {
   db.scan(params, function onScan(err, data) {
     if (err) return callback(err);
 
-    data.Items.forEach(function(scanner) {
-      scanner.url = `/scanners/${scanner.id}`;
-      scanner.api = [
-        `/scanners/${scanner.id}/privet/info`,
-        `/scanners/${scanner.id}/privet/twaindirect/session`
-      ];
-    });
-
     scanners = scanners.concat(data.Items);
 
     // continue scanning if we have more movies, because
@@ -45,6 +37,11 @@ module.exports.loginScanner = (event, context, callback) => {
 
   // generate x-privet-token to authenticate furhter requests
   scannerInfo['x-privet-token'] = uuid.v4();
+  scannerInfo.url = `/scanners/${scannerInfo.id}`;
+  scannerInfo.api = [
+    `/scanners/${scannerInfo.id}/privet/info`,
+    `/scanners/${scannerInfo.id}/privet/twaindirect/session`
+  ];
 
   const params = {
     TableName: scannersTable,
