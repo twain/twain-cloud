@@ -1,13 +1,9 @@
 'use strict';
 
-const aws = require('aws-sdk');
-const doc = require('dynamodb-doc');
+const uuid = require('uuid');
+const dynamo = require('../utils/dbClient');
 
-const awsRegion = process.env.ATALA_REGION;
 const scannersTable = process.env.ATALA_SCANNERS_TABLE;
-
-aws.config.update({region: awsRegion});
-const dynamo = new doc.DynamoDB();
 
 module.exports.getScanners = (event, context, callback) => {
 
@@ -47,6 +43,9 @@ module.exports.loginScanner = (event, context, callback) => {
 
   const scannerInfo = event.body;
   console.log(scannerInfo);
+
+  // generate x-privet-token to authenticate furhter requests
+  scannerInfo['x-privet-token'] = uuid.v4();
 
   const params = {
     TableName: scannersTable,

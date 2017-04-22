@@ -1,33 +1,20 @@
 'use strict';
 
+const scannersTable = process.env.ATALA_SCANNERS_TABLE;
+const db = require('../utils/dbClient');
+
 module.exports.handler = (event, context, callback) => {
 
-  const body = {
-    'version': '1.0',
-    'name': 'Manufacturer’s description of the scanner',
-    'description': 'User’s description of the scanner',
-    'url': '',
-    'type': 'twaindirect',
-    'id': '',
-    'device_state': 'idle',
-    'connection_state': 'offline',
-    'manufacturer': 'Manufacturer’s Name',
-    'model': '',
-    'serial_number': '',
-    'firmware': '',
-    'uptime': '',
-    'setup_url': '',
-    'support_url': '',
-    'update_url': '',
-    'x-privet-token': event.path.scannerId, // TODO: scanner should supply the token
-    'api': [
-      '/privet/twaindirect/session'
-    ],
-    'semantic_state': ''
+  const params = {
+    TableName: scannersTable,
+    Key:{
+      'id': event.path.scannerId
+    }
   };
 
-  callback(null, body);
+  db.getItem(params, function(err, data) {
+    if (err) return callback(err);
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
+    callback(null, data);
+  });
 };
