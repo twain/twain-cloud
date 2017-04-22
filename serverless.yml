@@ -95,8 +95,8 @@ package:
 
 functions:
 
-  scanners:
-    handler: api-cloud/scanners.handler
+  getScanners:
+    handler: api-cloud/scanners.getScanners
     events:
       - http:
           path: scanners
@@ -115,6 +115,28 @@ functions:
               - X-Privet-Token
             allowCredentials: false
           integration: lambda
+
+  loginScanners:
+    handler: api-cloud/scanners.loginScanner
+    events:
+      - http:
+          path: scanners
+          method: post
+          cors:
+            origins:
+              - '*'
+            headers:
+              # common CORS/AWS headers
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Date
+              - X-Amz-Security-Token
+              # custom headers we rely on
+              - X-Privet-Token
+            allowCredentials: false
+          integration: lambda
+
 
   info:
     handler: api-local/info.handler
