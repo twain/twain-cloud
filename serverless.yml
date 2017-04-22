@@ -51,6 +51,7 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
         - dynamodb:BatchWriteItem
+        - dynamodb:Scan
 
       # TODO: tweak this - we don't want to give access to all dynamoDB tables!
       Resource: "arn:aws:dynamodb:${self:provider.region}:*:*"
@@ -116,7 +117,7 @@ functions:
             allowCredentials: false
           integration: lambda
 
-  loginScanners:
+  loginScanner:
     handler: api-cloud/scanners.loginScanner
     events:
       - http:
@@ -137,6 +138,26 @@ functions:
             allowCredentials: false
           integration: lambda
 
+  logoffScanner:
+    handler: api-cloud/scanners.logoffScanner
+    events:
+      - http:
+          path: scanners/{scannerId}
+          method: delete
+          cors:
+            origins:
+              - '*'
+            headers:
+              # common CORS/AWS headers
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Date
+              - X-Amz-Security-Token
+              # custom headers we rely on
+              - X-Privet-Token
+            allowCredentials: false
+          integration: lambda
 
   info:
     handler: api-local/info.handler

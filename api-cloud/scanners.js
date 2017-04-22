@@ -1,7 +1,7 @@
 'use strict';
 
 const uuid = require('uuid');
-const dynamo = require('../utils/dbClient');
+const db = require('../utils/dbClient');
 
 const scannersTable = process.env.ATALA_SCANNERS_TABLE;
 
@@ -13,7 +13,7 @@ module.exports.getScanners = (event, context, callback) => {
 
   let scanners = [];
 
-  dynamo.scan(params, function onScan(err, data) {
+  db.scan(params, function onScan(err, data) {
     if (err) return callback(err);
 
     data.Items.forEach(function(scanner) {
@@ -31,7 +31,7 @@ module.exports.getScanners = (event, context, callback) => {
     if (typeof data.LastEvaluatedKey != 'undefined') {
       console.log('Scanning for more...');
       params.ExclusiveStartKey = data.LastEvaluatedKey;
-      dynamo.scan(params, onScan);
+      db.scan(params, onScan);
     } else {
       // return found scanners to the client
       callback(null, scanners);
@@ -40,7 +40,6 @@ module.exports.getScanners = (event, context, callback) => {
 };
 
 module.exports.loginScanner = (event, context, callback) => {
-
   const scannerInfo = event.body;
   console.log(scannerInfo);
 
@@ -52,8 +51,26 @@ module.exports.loginScanner = (event, context, callback) => {
     Item: scannerInfo
   };
 
-  dynamo.putItem(params, (err, data) => {
+  db.putItem(params, (err, data) => {
     if (err) return callback(err);
+    callback(null, data);
+  });
+};
+
+
+module.exports.logoffScanner = (event, context, callback) => {
+  const scannerId = event.path.scannerId;
+
+  const params = {
+    TableName: scannersTable,
+    Key:{
+      'id': scannerId
+    }
+  };
+
+  db.deleteItem(params, function(err, data) {
+    if (err) return callback(err);
+
     callback(null, data);
   });
 };
