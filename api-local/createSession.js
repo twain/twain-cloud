@@ -1,24 +1,22 @@
 'use strict';
 
 const uuid = require('uuid');
-const aws = require('aws-sdk');
-const doc = require('dynamodb-doc');
+const db = require('../utils/dbClient');
 
-const awsRegion = process.env.ATALA_REGION;
 const sessionsTable = process.env.ATALA_SESSIONS_TABLE;
-
-aws.config.update({region: awsRegion});
-const dynamo = new doc.DynamoDB();
 
 module.exports.handler = (event, context, callback) => {
 
   const body = event.body;
 
+  // TODO: add scanner id validation!
+
   const session = {
     'sessionId': uuid.v4(), // TODO: technically, scanner should generate this
     'revision': 1,
     'state': 'ready',
-    'imageBlocks': []
+    'imageBlocks': [],
+    '_scannerId': event.path.scannerId
   };
 
   const params = {
@@ -26,9 +24,8 @@ module.exports.handler = (event, context, callback) => {
     Item: session
   };
 
-  dynamo.putItem(params, (err, data) => {
-    console.log(err);
-    console.log(data);
+  db.putItem(params, (err) => {
+    if (err) return callback(err);
 
     const response = {
       'kind': 'twainlocalscanner',

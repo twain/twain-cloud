@@ -1,26 +1,50 @@
 'use strict';
 
+const db = require('../utils/dbClient');
+const sessionsTable = process.env.ATALA_SESSIONS_TABLE;
+
 module.exports.handler = (event, context, callback) => {
 
   const body = event.body;
+  const sessionId = body.params.sessionId;
 
-  const response = {
-    'kind': 'twainlocalscanner',
-    'commandId': body.commandId,
-    'method': 'getSession',
-    'results': {
-      'success': true,
-      'session': {
-        'sessionId': 'Session ID created by scanner for this session',
-        'revision': 1,
-        'state': 'ready',
-        'imageBlocks': []
-      }
+  const params = {
+    TableName: sessionsTable,
+    Key:{
+      'sessionId': sessionId,
     }
   };
 
-  callback(null, response);
+  db.getItem(params, function(err, data) {
+    let response;
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
+    if (err) {
+      response = {
+        'kind': 'twainlocalscanner',
+        'commandId': body.commandId,
+        'method': 'getSession',
+        'results': {
+          'success': false,
+          'session': {
+            'sessionId': 'Session ID created by scanner for this session',
+            'revision': 1,
+            'state': 'noSession',
+            'imageBlocks': []
+          }
+        }
+      };
+    } else {
+      response = {
+        'kind': 'twainlocalscanner',
+        'commandId': body.commandId,
+        'method': 'getSession',
+        'results': {
+          'success': true,
+          'session': data
+        }
+      };
+    }
+
+    callback(null, response);
+  });
 };
