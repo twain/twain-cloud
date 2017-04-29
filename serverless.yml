@@ -159,6 +159,14 @@ functions:
             allowCredentials: false
           integration: lambda
 
+  scannerEventHandler:
+    handler: api-cloud/scannerEventHandler.handler
+    events:
+      - iot:
+          name: "twainCloudEvent"
+          sql: "SELECT * FROM 'twain/scanners/+'"
+          description: "TWAIN Cloud scanner event handler"
+
   info:
     handler: api-local/info.handler
     events:
