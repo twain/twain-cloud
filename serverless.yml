@@ -35,6 +35,8 @@ provider:
   runtime: nodejs6.10
   stage: dev
   region: us-east-1
+  apiKeys:
+      -  dev-api-key
 
   environment:
     ATALA_REGION: ${self:provider.region}
@@ -102,6 +104,7 @@ functions:
       - http:
           path: scanners
           method: get
+          private: true
           cors:
             origins:
               - '*'
@@ -123,6 +126,7 @@ functions:
       - http:
           path: scanners
           method: post
+          private: true
           cors:
             origins:
               - '*'
@@ -144,6 +148,7 @@ functions:
       - http:
           path: scanners/{scannerId}
           method: delete
+          private: true
           cors:
             origins:
               - '*'
@@ -173,6 +178,7 @@ functions:
       - http:
           path: scanners/{scannerId}/privet/info
           method: get
+          private: true
           cors:
             origins:
               - '*'
@@ -185,6 +191,8 @@ functions:
               - X-Amz-Security-Token
               # custom headers we rely on
               - X-Privet-Token
+              - X-Twain-Cloud-Key
+              - X-Twain-Cloud-Secret
             allowCredentials: false
           integration: lambda
           request:
@@ -200,6 +208,7 @@ functions:
       - http:
           path: scanners/{scannerId}/privet/twaindirect/session
           method: post
+          private: true
           cors:
             origins:
               - '*'
