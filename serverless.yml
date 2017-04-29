@@ -37,6 +37,7 @@ provider:
   region: us-east-1
   apiKeys:
       -  dev-api-key
+      -  dev-test-api-key
 
   environment:
     ATALA_REGION: ${self:provider.region}

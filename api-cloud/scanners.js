@@ -7,9 +7,17 @@ const scannersTable = process.env.ATALA_SCANNERS_TABLE;
 
 module.exports.getScanners = (event, context, callback) => {
 
-  const params = {
+  let params = {
     TableName: scannersTable
   };
+
+  let apiKey = getClientId(event);
+  if (apiKey){
+    params = Object.assign(params, {
+      FilterExpression : 'clientId = :clientId',
+      ExpressionAttributeValues : {':clientId' : apiKey}
+    });
+  }
 
   let scanners = [];
 
@@ -20,7 +28,7 @@ module.exports.getScanners = (event, context, callback) => {
 
     // continue scanning if we have more movies, because
     // scan can retrieve a maximum of 1MB of data
-    if (typeof data.LastEvaluatedKey != 'undefined') {
+    if (typeof data.LastEvaluatedKey !== 'undefined') {
       console.log('Scanning for more...');
       params.ExclusiveStartKey = data.LastEvaluatedKey;
       db.scan(params, onScan);
@@ -42,6 +50,11 @@ module.exports.loginScanner = (event, context, callback) => {
     `/scanners/${scannerInfo.id}/privet/info`,
     `/scanners/${scannerInfo.id}/privet/twaindirect/session`
   ];
+
+  let apiKey = getClientId(event);
+  if (apiKey) {
+    scannerInfo.clientId = apiKey;
+  }
 
   const params = {
     TableName: scannersTable,
@@ -71,3 +84,7 @@ module.exports.logoffScanner = (event, context, callback) => {
     callback(null, data);
   });
 };
+
+function getClientId(request) {
+  return request.headers['x-api-key'];
+}
