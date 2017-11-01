@@ -40,9 +40,9 @@ provider:
       -  dev-test-api-key
 
   environment:
-    ATALA_REGION: ${self:provider.region}
-    ATALA_SESSIONS_TABLE: "twain-cloud-sessions"
-    ATALA_SCANNERS_TABLE: "twain-cloud-scanners"
+    TWAIN_REGION: ${self:provider.region}
+    TWAIN_SESSIONS_TABLE: "twain-cloud-sessions"
+    TWAIN_SCANNERS_TABLE: "twain-cloud-scanners"
 
   iamRoleStatements:
     - Effect: "Allow"
@@ -265,3 +265,41 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+
+
+
+resources:
+  Resources:
+    TwainSessionsTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        TableName: ${self:provider.environment.TWAIN_SESSIONS_TABLE}
+
+    TwainScannersTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        TableName: ${self:provider.environment.TWAIN_SCANNERS_TABLE}

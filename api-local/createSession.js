@@ -3,7 +3,7 @@
 const uuid = require('uuid');
 const db = require('../utils/dbClient');
 
-const sessionsTable = process.env.ATALA_SESSIONS_TABLE;
+const sessionsTable = process.env.TWAIN_SESSIONS_TABLE;
 
 module.exports.handler = (event, context, callback) => {
 

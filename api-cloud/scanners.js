@@ -3,7 +3,7 @@
 const uuid = require('uuid');
 const db = require('../utils/dbClient');
 
-const scannersTable = process.env.ATALA_SCANNERS_TABLE;
+const scannersTable = process.env.TWAIN_SCANNERS_TABLE;
 
 module.exports.getScanners = (event, context, callback) => {
 
