@@ -170,7 +170,7 @@ functions:
     events:
       - iot:
           name: "twainCloudEvent"
-          sql: "SELECT * FROM 'twain/scanners/+'"
+          sql: "SELECT * FROM 'twain/scanners/+/toCloud'"
           description: "TWAIN Cloud scanner event handler"
 
   info:
