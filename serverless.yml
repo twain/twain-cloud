@@ -276,11 +276,11 @@ resources:
       Properties:
         AttributeDefinitions:
           -
-            AttributeName: id
+            AttributeName: sessionId
             AttributeType: S
         KeySchema:
           -
-            AttributeName: id
+            AttributeName: sessionId
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 5
