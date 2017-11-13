@@ -41,7 +41,7 @@ provider:
 
   environment:
     TWAIN_REGION: ${self:provider.region}
-    TWAIN_SESSIONS_TABLE: "twain-cloud-sessions"
+    TWAIN_SESSIONS_TABLE: "twain-cloud-sessions-v2"
     TWAIN_SCANNERS_TABLE: "twain-cloud-scanners"
 
   iamRoleStatements:
