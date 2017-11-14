@@ -69,7 +69,7 @@ provider:
       Action:
         - "s3:PutObject"
       Resource: "*"
-      
+
     - Effect: "Allow"
       Action:
         - 'iot:Publish'
@@ -122,19 +122,7 @@ functions:
           path: scanners
           method: get
           private: true
-          cors:
-            origins:
-              - '*'
-            headers:
-              # common CORS/AWS headers
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Date
-              - X-Amz-Security-Token
-              # custom headers we rely on
-              - X-Privet-Token
-            allowCredentials: false
+          cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
   loginScanner:
@@ -144,19 +132,7 @@ functions:
           path: scanners
           method: post
           private: true
-          cors:
-            origins:
-              - '*'
-            headers:
-              # common CORS/AWS headers
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Date
-              - X-Amz-Security-Token
-              # custom headers we rely on
-              - X-Privet-Token
-            allowCredentials: false
+          cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
   logoffScanner:
@@ -166,41 +142,17 @@ functions:
           path: scanners/{scannerId}
           method: delete
           private: true
-          cors:
-            origins:
-              - '*'
-            headers:
-              # common CORS/AWS headers
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Date
-              - X-Amz-Security-Token
-              # custom headers we rely on
-              - X-Privet-Token
-            allowCredentials: false
+          cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
   upload:
     handler: api-cloud/upload.handler
     events:
       - http:
-          path: scanners/{scannerId}/upload
+          path: scanners/{scannerId}
           method: post
           private: true
-          cors:
-            origins:
-              - '*'
-            headers:
-              # common CORS/AWS headers
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Date
-              - X-Amz-Security-Token
-              # custom headers we rely on
-              - X-Privet-Token
-            allowCredentials: false
+          cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
   scannerEventHandler:
@@ -218,21 +170,7 @@ functions:
           path: scanners/{scannerId}/privet/info
           method: get
           private: true
-          cors:
-            origins:
-              - '*'
-            headers:
-              # common CORS/AWS headers
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Date
-              - X-Amz-Security-Token
-              # custom headers we rely on
-              - X-Privet-Token
-              - X-Twain-Cloud-Key
-              - X-Twain-Cloud-Secret
-            allowCredentials: false
+          cors: ${file(./serverless.cors.yml)}
           integration: lambda
           request:
             parameters:
@@ -248,19 +186,7 @@ functions:
           path: scanners/{scannerId}/privet/twaindirect/session
           method: post
           private: true
-          cors:
-            origins:
-              - '*'
-            headers:
-              # common CORS/AWS headers
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Date
-              - X-Amz-Security-Token
-              # custom headers we rely on
-              - X-Privet-Token
-            allowCredentials: false
+          cors: ${file(./serverless.cors.yml)}
           integration: lambda
           request:
             parameters:
@@ -268,7 +194,6 @@ functions:
                 scannerId: true
             template:
               application/json: ${file(api-local/session.req.vm)}
-
 
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)

@@ -1,0 +1,12 @@
+origins:
+  - '*'
+headers:
+  # common CORS/AWS headers
+  - Content-Type
+  - Authorization
+  - X-Api-Key
+  - X-Amz-Date
+  - X-Amz-Security-Token
+  # custom headers we rely on
+  - X-Private-Session
+allowCredentials: false
