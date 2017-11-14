@@ -163,11 +163,11 @@ functions:
           sql: "SELECT * FROM 'twain/scanners/+/toCloud'"
           description: "TWAIN Cloud scanner event handler"
 
-  info:
+  infoex:
     handler: api-local/info.handler
     events:
       - http:
-          path: scanners/{scannerId}/privet/info
+          path: scanners/{scannerId}/privet/infoex
           method: get
           private: true
           cors: ${file(./serverless.cors.yml)}
