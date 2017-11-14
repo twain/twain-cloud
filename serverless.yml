@@ -57,6 +57,9 @@ provider:
         - dynamodb:DeleteItem
         - dynamodb:BatchWriteItem
         - dynamodb:Scan
+        - iot:Publish
+        - s3:GetObject
+        - s3:PutObject
 
       # TODO: tweak this - we don't want to give access to all dynamoDB tables!
       Resource: "arn:aws:dynamodb:${self:provider.region}:*:*"
