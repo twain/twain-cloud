@@ -1,7 +1,7 @@
 {
   "name": "twain-cloud",
   "version": "1.0.0",
-  "description": "Atalasoft TWAIN Cloud implementation",
+  "description": "TWAIN Cloud implementation",
   "main": "index.js",
   "scripts": {
     "test": "mocha test",
@@ -16,12 +16,11 @@
   "keywords": [
     "TWAIN",
     "direct",
-    "cloud",
-    "Atalasoft"
+    "cloud"
   ],
-  "author": "Atalasoft",
+  "author": "TWAIN Working Group",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/atala-proto-team/twain-cloud#readme",
+  "homepage": "https://github.com/twain/twain-cloud",
   "devDependencies": {
     "aws-sdk": "^2.41.0",
     "babel-preset-es2016": "^6.24.1",

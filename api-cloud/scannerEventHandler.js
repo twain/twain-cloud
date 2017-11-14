@@ -2,8 +2,8 @@
 
 const db = require('../utils/dbClient');
 const iot = require('../utils/iotClient');
-const sessionsTable = process.env.ATALA_SESSIONS_TABLE;
-const scannersTable = process.env.ATALA_SCANNERS_TABLE;
+const sessionsTable = process.env.TWAIN_SESSIONS_TABLE;
+const scannersTable = process.env.TWAIN_SCANNERS_TABLE;
 
 function updateScannerState(scannerId, state) {
   const params = {
