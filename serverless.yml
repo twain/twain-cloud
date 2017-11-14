@@ -43,6 +43,8 @@ provider:
     TWAIN_REGION: ${self:provider.region}
     TWAIN_SESSIONS_TABLE: "twain-cloud-sessions-v2"
     TWAIN_SCANNERS_TABLE: "twain-cloud-scanners"
+    TWAIN_BUCKET: "twain-cloud-bucket"
+    TWAIN_IOT_ENDPOINT: "a23w76das7e02.iot.us-east-1.amazonaws.com"
 
   iamRoleStatements:
     - Effect: "Allow"
@@ -149,6 +151,28 @@ functions:
       - http:
           path: scanners/{scannerId}
           method: delete
+          private: true
+          cors:
+            origins:
+              - '*'
+            headers:
+              # common CORS/AWS headers
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Date
+              - X-Amz-Security-Token
+              # custom headers we rely on
+              - X-Privet-Token
+            allowCredentials: false
+          integration: lambda
+
+  upload:
+    handler: api-cloud/upload.handler
+    events:
+      - http:
+          path: scanners/{scannerId}/upload
+          method: post
           private: true
           cors:
             origins:

@@ -13,7 +13,7 @@ module.exports.handler = (event, context, callback) => {
       'session': {
         'sessionId': 'Session ID created by scanner for this session',
         'revision': 1,
-        'state': 'capturing',
+        'state': 'capturing'
       },
       'metadata': {
         'status': {

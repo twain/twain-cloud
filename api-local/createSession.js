@@ -2,21 +2,24 @@
 
 const uuid = require('uuid');
 const db = require('../utils/dbClient');
+const iot = require('../utils/iotClient');
 
 const sessionsTable = process.env.TWAIN_SESSIONS_TABLE;
 
 module.exports.handler = (event, context, callback) => {
 
   const body = event.body;
+  const scannerId = event.path.scannerId;
+  const sessionId = uuid.v4(); // TODO: technically, scanner should generate this
 
   // TODO: add scanner id validation!
 
   const session = {
-    'sessionId': uuid.v4(), // TODO: technically, scanner should generate this
+    'sessionId': sessionId,
     'revision': 1,
     'state': 'ready',
     'imageBlocks': [],
-    '_scannerId': event.path.scannerId
+    '_scannerId': scannerId
   };
 
   const params = {
@@ -24,9 +27,9 @@ module.exports.handler = (event, context, callback) => {
     Item: session
   };
 
-  db.putItem(params, (err) => {
-    if (err) return callback(err);
-
+  db.putItem(params).promise().then(() => {
+    return iot.notifyScanner(scannerId, { command: 'createSession', parameters: { sessionId: sessionId } });
+  }).then(() => {
     const response = {
       'kind': 'twainlocalscanner',
       'commandId': body.commandId,
@@ -38,5 +41,5 @@ module.exports.handler = (event, context, callback) => {
     };
 
     callback(null, response);
-  });
+  }).catch(callback);
 };

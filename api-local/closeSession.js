@@ -1,25 +1,37 @@
 'use strict';
 
+const db = require('../utils/dbClient');
+const iot = require('../utils/iotClient');
+const sessionsTable = process.env.TWAIN_SESSIONS_TABLE;
+
 module.exports.handler = (event, context, callback) => {
 
   const body = event.body;
+  const scannerId = event.path.scannerId;
+  const sessionId = body.params.sessionId;
 
-  const response = {
-    'kind': 'twainlocalscanner',
-    'commandId': body.commandId,
-    'method': 'closeSession',
-    'results': {
-      'success': true,
-      'session': {
-        'sessionId': 'Session ID created by scanner for this session',
-        'revision': 1,
-        'state': 'closed',
+  iot.notifyScanner(scannerId, { command: 'closeSession' }).then(() => {
+    const params = {
+      TableName: sessionsTable,
+      Key: { 'sessionId': sessionId }
+    };
+
+    return db.deleteItem(params).promise();
+  }).then(() => {
+    const response = {
+      'kind': 'twainlocalscanner',
+      'commandId': body.commandId,
+      'method': 'closeSession',
+      'results': {
+        'success': true,
+        'session': {
+          'sessionId': 'Session ID created by scanner for this session',
+          'revision': 1,
+          'state': 'closed'
+        }
       }
-    }
-  };
+    };
 
-  callback(null, response);
-
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
+    callback(null, response);
+  }).catch(callback);
 };

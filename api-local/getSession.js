@@ -10,41 +10,34 @@ module.exports.handler = (event, context, callback) => {
 
   const params = {
     TableName: sessionsTable,
-    Key:{
-      'sessionId': sessionId,
-    }
+    Key: { 'sessionId': sessionId }
   };
 
-  db.getItem(params, function(err, data) {
-    let response;
-
-    if (err) {
-      response = {
-        'kind': 'twainlocalscanner',
-        'commandId': body.commandId,
-        'method': 'getSession',
-        'results': {
-          'success': false,
-          'session': {
-            'sessionId': 'Session ID created by scanner for this session',
-            'revision': 1,
-            'state': 'noSession',
-            'imageBlocks': []
-          }
+  db.getItem(params).promise().then(data => {
+    const session = data.Item;
+    callback(null, {
+      'kind': 'twainlocalscanner',
+      'commandId': body.commandId,
+      'method': 'getSession',
+      'results': {
+        'success': true,
+        'session': session
+      }
+    });
+  }).catch(err => {
+    callback({
+      'kind': 'twainlocalscanner',
+      'commandId': body.commandId,
+      'method': 'getSession',
+      'results': {
+        'success': false,
+        'session': {
+          'sessionId': sessionId,
+          'revision': 1,
+          'state': 'noSession',
+          'imageBlocks': []
         }
-      };
-    } else {
-      response = {
-        'kind': 'twainlocalscanner',
-        'commandId': body.commandId,
-        'method': 'getSession',
-        'results': {
-          'success': true,
-          'session': data
-        }
-      };
-    }
-
-    callback(null, response);
+      }
+    });
   });
 };
