@@ -1,42 +1,81 @@
 'use strict';
 
+// TEST 
+const AWS = require('aws-sdk');
+var signUrl = require('aws-device-gateway-signed-url');
+
 const uuid = require('uuid');
 const db = require('../utils/dbClient');
 
 const scannersTable = process.env.TWAIN_SCANNERS_TABLE;
 
-module.exports.getScanners = (event, context, callback) => {
 
-  let params = {
-    TableName: scannersTable
+// Get random Int
+const getRandomInt = () => {
+  return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+};
+
+function signIotWssEndpoint(context, callback) {
+
+  var accountId = context.invokedFunctionArn.match(/\d{3,}/)[0];
+  var roleName = process.env.TWAIN_IOT_ROLE;
+
+  const params = {
+    RoleArn: `arn:aws:iam::${accountId}:role/${roleName}`,
+    RoleSessionName: getRandomInt().toString()
   };
 
-  let apiKey = getClientId(event);
-  if (apiKey){
-    params = Object.assign(params, {
-      FilterExpression : 'clientId = :clientId',
-      ExpressionAttributeValues : {':clientId' : apiKey}
-    });
-  }
-
-  let scanners = [];
-
-  db.scan(params, function onScan(err, data) {
+  // assume role returns temporary keys
+  const sts = new AWS.STS();
+  sts.assumeRole(params, (err, data) => {
     if (err) return callback(err);
 
-    scanners = scanners.concat(data.Items);
+    var signedUrl = signUrl ({
+      regionName: process.env.REGION,
+      endpoint: process.env.TWAIN_IOT_ENDPOINT,
+      accessKey: data.Credentials.AccessKeyId,
+      secretKey: data.Credentials.SecretAccessKey,
+      sessionToken: data.Credentials.SessionToken
+    });
 
-    // continue scanning if we have more movies, because
-    // scan can retrieve a maximum of 1MB of data
-    if (typeof data.LastEvaluatedKey !== 'undefined') {
-      console.log('Scanning for more...');
-      params.ExclusiveStartKey = data.LastEvaluatedKey;
-      db.scan(params, onScan);
-    } else {
-      // return found scanners to the client
-      callback(null, scanners);
-    }
+    return callback(null, signedUrl);
   });
+}
+
+module.exports.getScanners = (event, context, callback) => {
+
+  signIotWssEndpoint(context, callback);
+
+  // let params = {
+  //   TableName: scannersTable
+  // };
+
+  // let apiKey = getClientId(event);
+  // if (apiKey){
+  //   params = Object.assign(params, {
+  //     FilterExpression : 'clientId = :clientId',
+  //     ExpressionAttributeValues : {':clientId' : apiKey}
+  //   });
+  // }
+
+  // let scanners = [];
+
+  // db.scan(params, function onScan(err, data) {
+  //   if (err) return callback(err);
+
+  //   scanners = scanners.concat(data.Items);
+
+  //   // continue scanning if we have more movies, because
+  //   // scan can retrieve a maximum of 1MB of data
+  //   if (typeof data.LastEvaluatedKey !== 'undefined') {
+  //     console.log('Scanning for more...');
+  //     params.ExclusiveStartKey = data.LastEvaluatedKey;
+  //     db.scan(params, onScan);
+  //   } else {
+  //     // return found scanners to the client
+  //     callback(null, scanners);
+  //   }
+  // });
 };
 
 module.exports.loginScanner = (event, context, callback) => {
