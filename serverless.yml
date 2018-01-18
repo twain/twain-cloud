@@ -1,21 +1,4 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
 service: twain-cloud # NOTE: update this with your service name
-
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
-# frameworkVersion: "=X.X.X"
 
 local: ${file(serverless.local.yml)} # local settings
 
@@ -29,22 +12,35 @@ custom:
 plugins:
   - serverless-plugin-optimize
   - serverless-offline
+  - serverless-pseudo-parameters
 
 provider:
   name: aws
   runtime: nodejs6.10
   stage: dev
   region: us-east-1
-  apiKeys:
-      -  dev-api-key
-      -  dev-test-api-key
 
   environment:
-    TWAIN_REGION: ${self:provider.region}
-    TWAIN_SESSIONS_TABLE: "twain-cloud-sessions-v2"
-    TWAIN_SCANNERS_TABLE: "twain-cloud-scanners"
-    TWAIN_BUCKET: "twain-cloud-bucket"
-    TWAIN_IOT_ENDPOINT: "a23w76das7e02.iot.us-east-1.amazonaws.com"
+    # General
+    SERVICE: ${self:service}
+    STAGE: ${opt:stage, self:provider.stage}
+    REGION: ${opt:region, self:provider.region}
+    # Databases
+    TWAIN_SESSIONS_TABLE: ${self:service}-sessions-${opt:stage, self:provider.stage}
+    TWAIN_SCANNERS_TABLE: ${self:service}-scanners-${opt:stage, self:provider.stage}
+    CACHE_DB_NAME: ${self:service}-cache-${opt:stage, self:provider.stage}
+    USERS_DB_NAME: ${self:service}-users-${opt:stage, self:provider.stage}
+    # Auth General
+    REDIRECT_CLIENT_URI: https://twain.hazybits.com
+    TOKEN_SECRET: token-secret-123
+    # Auth Providers
+    PROVIDER_FACEBOOK_ID: 1392707264191692
+    # TODO: remove this!
+    PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
+    # TWAIN Cloud
+    TWAIN_BUCKET: "twain-cloud-bucket-#{AWS::AccountId}"
+    TWAIN_IOT_ENDPOINT: "a1dy1wda84cvk3.iot.us-east-1.amazonaws.com"
+    TWAIN_IOT_ROLE: "twain-role-iot"
 
   iamRoleStatements:
     - Effect: "Allow"
@@ -77,43 +73,14 @@ provider:
 
 package:
   individually: true
+  excludeDevDependencies: false
   exclude:
-    - src/**
-    - test/**
+    - .git/**
     - node_modules/**
 
-
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
-
 functions:
+
+  # TWAIN Cloud APIs
 
   getScanners:
     handler: api-cloud/scanners.getScanners
@@ -121,7 +88,7 @@ functions:
       - http:
           path: scanners
           method: get
-          private: true
+          authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
@@ -131,7 +98,7 @@ functions:
       - http:
           path: scanners
           method: post
-          private: true
+          authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
@@ -141,7 +108,7 @@ functions:
       - http:
           path: scanners/{scannerId}
           method: delete
-          private: true
+          authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
@@ -151,7 +118,7 @@ functions:
       - http:
           path: scanners/{scannerId}
           method: post
-          private: true
+          authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
@@ -162,6 +129,8 @@ functions:
           name: "twainCloudEvent"
           sql: "SELECT * FROM 'twain/scanners/+/toCloud'"
           description: "TWAIN Cloud scanner event handler"
+ 
+  # TWAIN Local APIs
 
   infoex:
     handler: api-local/info.handler
@@ -169,7 +138,7 @@ functions:
       - http:
           path: scanners/{scannerId}/privet/infoex
           method: get
-          private: true
+          authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
           request:
@@ -185,7 +154,7 @@ functions:
       - http:
           path: scanners/{scannerId}/privet/twaindirect/session
           method: post
-          private: true
+          authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
           request:
@@ -195,55 +164,80 @@ functions:
             template:
               application/json: ${file(api-local/session.req.vm)}
 
-#      - s3: ${env:BUCKET}
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill
-#      - iot:
-#          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
-#      - cloudwatchLog: '/aws/lambda/hello'
+  # Authentication APIs
 
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
-
-
+  authorize:
+    handler: api-auth/handler.authorize  
+    
+  signin:
+    handler: api-auth/handler.signin
+    memorySize: 256
+    timeout: 15
+    events:
+      - http:
+          path: authentication/signin/{provider}
+          method: get
+          integration: lambda-proxy
+  callback:
+    handler: api-auth/handler.callback
+    memorySize: 256
+    timeout: 15
+    events:
+      - http:
+          path: authentication/callback/{provider}
+          method: get
+          integration: lambda-proxy
+  refresh:
+    handler: api-auth/handler.refresh
+    memorySize: 256
+    timeout: 15
+    events:
+      - http:
+          path: authentication/refresh/{refresh_token}
+          method: get
+          cors: true
+          integration: lambda
+          request:
+            template:
+              application/json: |
+                {
+                  "refresh_token":"$input.params('refresh_token')",
+                  "id":"$input.params('id')",
+                  "state":"$input.params('state')",
+                  "host":"$input.params().header.get('host')",
+                  "stage":"$context.stage"
+                }
 
 resources:
   Resources:
+
+    UploadBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.TWAIN_BUCKET}
+        AccessControl: Private
+        CorsConfiguration:
+          CorsRules:
+          - AllowedMethods:
+            - GET
+            - PUT
+            - POST
+            - HEAD
+            AllowedOrigins:
+            - "*"
+            AllowedHeaders:
+            - "*"
+
+    # TWAIN Cloud Tables
     TwainSessionsTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
-          -
-            AttributeName: sessionId
+          - AttributeName: sessionId
             AttributeType: S
         KeySchema:
-          -
-            AttributeName: sessionId
+          - AttributeName: sessionId
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 5
@@ -255,14 +249,70 @@ resources:
       DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
-          -
-            AttributeName: id
+          - AttributeName: id
             AttributeType: S
         KeySchema:
-          -
-            AttributeName: id
+          - AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
         TableName: ${self:provider.environment.TWAIN_SCANNERS_TABLE}
+
+    # Authentication Tables
+    CacheTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: token
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+        KeySchema:
+        - AttributeName: token
+          KeyType: HASH
+        - AttributeName: type
+          KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.CACHE_DB_NAME}
+
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.USERS_DB_NAME}
+
+    GenerateIoTKeysRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:provider.environment.TWAIN_IOT_ROLE}
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                AWS: "*" # TODO: we need to restrict this somehow once we have better understanding of roles/policies
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          -
+            PolicyName: "root"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                -
+                  Effect: "Allow"
+                  Action: ["iot:Connect", "iot:Subscribe", "iot:Publish", "iot:Receive"]
+                  Resource: "*" # TODO: looks like we give access to all IoT resrouces. Restrict this!
+        

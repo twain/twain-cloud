@@ -23,14 +23,26 @@
   "homepage": "https://github.com/twain/twain-cloud",
   "devDependencies": {
     "aws-sdk": "^2.41.0",
+    "babel-preset-es2015": "^6.24.1",
     "babel-preset-es2016": "^6.24.1",
+    "chalk": "^1.1.3",
     "eslint": "^3.19.0",
+    "lodash": "^4.17.4",
     "serverless": "^1.11.0",
     "serverless-offline": "^3.13.3",
-    "serverless-plugin-optimize": "^2.0.1-rc.1"
+    "serverless-plugin-optimize": "^2.0.1-rc.1",
+    "serverless-pseudo-parameters": "^1.1.6"
   },
   "dependencies": {
+    "aws-device-gateway-signed-url": "^1.0.0",
+    "aws-signature-v4": "^1.1.1",
+    "bluebird": "^3.4.0",
+    "decamelize": "^1.2.0",
     "dynamodb-doc": "^1.0.0",
+    "serverless-authentication": "^0.4.4",
+    "serverless-authentication-facebook": "^0.3.2",
+    "serverless-authentication-google": "^0.3.2",
+    "serverless-authentication-microsoft": "^0.3.2",
     "uuid": "^3.0.1"
   }
 }

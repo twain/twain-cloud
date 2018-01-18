@@ -3,7 +3,7 @@
 const aws = require('aws-sdk');
 const doc = require('dynamodb-doc');
 
-const awsRegion = process.env.TWAIN_REGION;
+const awsRegion = process.env.REGION;
 
 aws.config.update({region: awsRegion});
 const dynamo = new doc.DynamoDB();
