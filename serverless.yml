@@ -80,8 +80,38 @@ package:
 
 functions:
 
+  # Registration APIs
+
+  register:
+    handler: api-cloud/register.submit
+    events:
+      - http:
+          path: register
+          method: post
+          cors: ${file(./serverless.cors.yml)}
+          integration: lambda    
+
+  poll:
+    handler: api-cloud/register.poll
+    events:
+      - http:
+          path: poll
+          method: get
+          cors: ${file(./serverless.cors.yml)}
+          integration: lambda   
+
+  claim:
+    handler: api-cloud/register.claim
+    events:
+      - http:
+          path: claim
+          method: post
+          cors: ${file(./serverless.cors.yml)}
+          integration: lambda   
+
   # TWAIN Cloud APIs
 
+          
   getScanners:
     handler: api-cloud/scanners.getScanners
     events:
