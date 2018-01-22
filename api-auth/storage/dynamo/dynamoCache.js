@@ -24,8 +24,14 @@ function hash() {
 /**
  * Creates OAuth State
  */
-const createState = () => {
-  const state = hash();
+const createState = (origin) => {
+  const stateObject = {
+    h: hash(),
+    origin: origin
+  };
+
+  const state = Buffer.from(JSON.stringify(stateObject)).toString('base64');
+
   const params = {
     TableName: table,
     Item: {

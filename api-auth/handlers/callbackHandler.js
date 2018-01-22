@@ -59,11 +59,13 @@ function callbackHandler(proxyEvent, context) {
    * Token response
    * @param data
    */
-  function tokenResponse(data) {
+  function tokenResponse(data) {   
+    const stateObject = JSON.parse(Buffer.from(event.state, 'base64').toString('utf8'));
+
     utils.tokenResponse(
       data,
       providerConfig,
-      (err, response) => redirectProxyCallback(context, response)
+      (err, response) => redirectProxyCallback(context, response, stateObject.origin)
     );
   }
 

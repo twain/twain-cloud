@@ -25,12 +25,13 @@ function signinHandler(proxyEvent, context) {
   const event = {
     provider: proxyEvent.pathParameters.provider,
     stage: proxyEvent.requestContext.stage,
-    host: proxyEvent.headers.Host
+    host: proxyEvent.headers.Host,
+    origin: proxyEvent.queryStringParameters.origin
   };
 
   const providerConfig = config(event);
 
-  cache.createState()
+  cache.createState(event.origin)
     .then((state) => {
       switch (event.provider) {
       case 'facebook':
