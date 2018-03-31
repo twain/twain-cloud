@@ -2,12 +2,16 @@
 
 const uuid = require('uuid');
 const db = require('../utils/dbClient');
+const logger = require('../utils/logger');
+const { initializeEnvironment } = require('../utils/lambda');
 
 const scannersTable = process.env.TWAIN_SCANNERS_TABLE;
 
 module.exports.submit = (event, context, callback) => {
+  initializeEnvironment(event, context, logger);
+  
   const scannerInfo = event.body;
-  console.log(scannerInfo);
+  logger.debug(scannerInfo);
 
   const scannerId = uuid.v4();
   const registrationToken = uuid.v4();
@@ -20,11 +24,12 @@ module.exports.submit = (event, context, callback) => {
     Item: scannerInfo
   };
 
+  logger.info(`Persisting scanner with id: ${scannerId} and registration token: ${registrationToken}`);
   db.putItem(params).promise()
   .then(() => {
     const response = {
       registrationToken: registrationToken,
-      pollingUrl: '/register?scannerId=' + scannerId,
+      pollingUrl: '/register?scannerId=' + scannerId, // TODO: create valid complete polling URL here
       inviteUrl: 'https://twain.hazybits.com/register.html?scannerId=' + scannerId
     };
 
