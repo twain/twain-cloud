@@ -132,8 +132,8 @@ functions:
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
-  logoffScanner:
-    handler: api-cloud/scanners.logoffScanner
+  deleteScanner:
+    handler: api-cloud/scanners.deleteScanner
     events:
       - http:
           path: scanners/{scannerId}
@@ -166,7 +166,7 @@ functions:
     handler: api-local/info.handler
     events:
       - http:
-          path: scanners/{scannerId}/privet/infoex
+          path: scanners/{scannerId}/infoex
           method: get
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
@@ -182,7 +182,7 @@ functions:
     handler: api-local/session.handler
     events:
       - http:
-          path: scanners/{scannerId}/privet/twaindirect/session
+          path: scanners/{scannerId}/twaindirect/session
           method: post
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}

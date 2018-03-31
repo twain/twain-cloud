@@ -1,25 +1,30 @@
 'use strict';
 
+const { initializeEnvironment } = require('../utils/lambda');
+const logger = require('../utils/logger');
 const uuid = require('uuid');
 const db = require('../utils/dbClient');
 
 const scannersTable = process.env.TWAIN_SCANNERS_TABLE;
 
 module.exports.getScanners = (event, context, callback) => {
+  initializeEnvironment(event, context, logger);
+  
   let params = {
     TableName: scannersTable
   };
 
-  let apiKey = getClientId(event);
-  if (apiKey){
+  let clientId = getClientId(event);
+  if (clientId){
     params = Object.assign(params, {
       FilterExpression : 'clientId = :clientId',
-      ExpressionAttributeValues : {':clientId' : apiKey}
+      ExpressionAttributeValues : {':clientId' : clientId}
     });
   }
 
   let scanners = [];
 
+  logger.info(`Loading scanners for clientId: ${clientId}`);
   db.scan(params, function onScan(err, data) {
     if (err) return callback(err);
 
@@ -42,7 +47,7 @@ module.exports.loginScanner = (event, context, callback) => {
   const scannerInfo = event.body;
   console.log(scannerInfo);
 
-  // generate x-privet-token to authenticate furhter requests
+  // generate x-privet-token to authenticate further requests
   scannerInfo['x-privet-token'] = uuid.v4();
   scannerInfo.url = `/scanners/${scannerInfo.id}`;
   scannerInfo.api = [
@@ -66,9 +71,11 @@ module.exports.loginScanner = (event, context, callback) => {
   });
 };
 
-module.exports.logoffScanner = (event, context, callback) => {
-  const scannerId = event.path.scannerId;
+module.exports.deleteScanner = (event, context, callback) => {
+  initializeEnvironment(event, context, logger);
 
+  // TODO: add condition with user id to prevent unauthorized delete
+  const scannerId = event.path.scannerId;
   const params = {
     TableName: scannersTable,
     Key:{
@@ -76,11 +83,8 @@ module.exports.logoffScanner = (event, context, callback) => {
     }
   };
 
-  db.deleteItem(params, function(err, data) {
-    if (err) return callback(err);
-
-    callback(null, data);
-  });
+  logger.info(`Deleting scanner with id: ${scannerId}`);
+  db.deleteItem(params, callback);
 };
 
 function getClientId(request) {
