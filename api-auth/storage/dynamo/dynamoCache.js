@@ -24,11 +24,14 @@ function hash() {
 /**
  * Creates OAuth State
  */
-const createState = (origin) => {
+const createState = (origin, query) => {
   const stateObject = {
     h: hash(),
-    origin: origin
+    origin: origin,
+    query: query
   };
+
+  console.log('state: ' + JSON.stringify(stateObject));
 
   const state = Buffer.from(JSON.stringify(stateObject)).toString('base64');
 

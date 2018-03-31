@@ -62,10 +62,12 @@ function callbackHandler(proxyEvent, context) {
   function tokenResponse(data) {   
     const stateObject = JSON.parse(Buffer.from(event.state, 'base64').toString('utf8'));
 
+    console.log('state: ' + JSON.stringify(stateObject));
+
     utils.tokenResponse(
       data,
       providerConfig,
-      (err, response) => redirectProxyCallback(context, response, stateObject.origin)
+      (err, response) => redirectProxyCallback(context, response, stateObject.origin, stateObject.query)
     );
   }
 
