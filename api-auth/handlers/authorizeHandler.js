@@ -1,8 +1,9 @@
 'use strict';
 
-// Config
-const slsAuth = require('serverless-authentication');
+const isOffline = process.env.IS_OFFLINE;
 
+const logger = require('../../utils/logger');
+const slsAuth = require('serverless-authentication');
 const config = slsAuth.config;
 const utils = slsAuth.utils;
 
@@ -17,12 +18,17 @@ const policyContext = (data) => {
 };
 
 // Authorize
-const authorize = (event, callback) => {
+const authorize = (event, context, callback) => {
+  logger.initialize(event, context);
+
+  logger.info('start authorize');
   const stage = event.methodArn.split('/')[1] || 'dev'; // @todo better implementation
   let error = null;
   let policy;
   const authorizationToken = event.authorizationToken;
-  if (authorizationToken) {
+  if (isOffline) {
+    policy = utils.generatePolicy('<offline user>', 'Allow', event.methodArn);
+  } else if (authorizationToken) {
     try {
       // this example uses simple expiration time validation
       const providerConfig = config({ provider: '', stage });
@@ -35,6 +41,8 @@ const authorize = (event, callback) => {
   } else {
     error = 'Unauthorized';
   }
+
+  logger.debug('auth policy:', JSON.stringify(policy));
   callback(error, policy);
 };
 
