@@ -45,6 +45,7 @@
     "serverless-authentication-facebook": "^0.3.2",
     "serverless-authentication-google": "^0.3.2",
     "serverless-authentication-microsoft": "^0.3.2",
+    "url-join": "^4.0.0",
     "uuid": "^3.0.1"
   }
 }

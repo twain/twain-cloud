@@ -1,10 +1,11 @@
 'use strict';
 
-const redirectUrl = process.env.REDIRECT_CLIENT_URI;
+const urljoin = require('url-join');
+const redirectUrl = process.env.TWAIN_WEB;
 
 // JWT token options
 const createResponseData = (id) => {
-  // sets 15 seconds expiration time as an example
+  
   const authorizationToken = {
     payload: {
       id
@@ -17,10 +18,18 @@ const createResponseData = (id) => {
   return { authorizationToken };
 };
 
-const redirectProxyCallback = (context, data, origin) => {
+const redirectProxyCallback = (context, data, origin, query) => {
 
-  var url = origin ? data.url.replace(redirectUrl, redirectUrl + origin) : data.url;
+  var url = data.url;
 
+  if (origin) {
+    url = url.replace(redirectUrl, urljoin(redirectUrl, origin));
+  }
+
+  if (query) {
+    url = url + '&' + decodeURIComponent(query);
+  }
+  
   context.succeed({
     statusCode: 302,
     headers: {

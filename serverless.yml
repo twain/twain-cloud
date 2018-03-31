@@ -30,7 +30,7 @@ provider:
     TWAIN_SCANNERS_TABLE: ${self:service}-scanners-${opt:stage, self:provider.stage}
     CACHE_DB_NAME: ${self:service}-cache-${opt:stage, self:provider.stage}
     USERS_DB_NAME: ${self:service}-users-${opt:stage, self:provider.stage}
-    # Auth General
+    # Auth General 
     REDIRECT_CLIENT_URI: https://twain.hazybits.com
     TOKEN_SECRET: token-secret-123
     # Auth Providers
@@ -39,6 +39,9 @@ provider:
     PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
     # TWAIN Cloud
     TWAIN_BUCKET: "twain-cloud-bucket-#{AWS::AccountId}"
+    TWAIN_API: https://api.twain.hazybits.com
+    TWAIN_WEB: https://twain.hazybits.com    
+    # TODO: replace this with value of your IoT endpoint!
     TWAIN_IOT_ENDPOINT: "a1dy1wda84cvk3.iot.us-east-1.amazonaws.com"
     TWAIN_IOT_ROLE: "twain-role-iot"
 
@@ -83,7 +86,7 @@ functions:
   # Registration APIs
 
   register:
-    handler: api-cloud/register.submit
+    handler: api-register/register.submit
     events:
       - http:
           path: register
@@ -92,7 +95,7 @@ functions:
           integration: lambda    
 
   poll:
-    handler: api-cloud/register.poll
+    handler: api-register/register.poll
     events:
       - http:
           path: poll
@@ -101,17 +104,17 @@ functions:
           integration: lambda   
 
   claim:
-    handler: api-cloud/register.claim
+    handler: api-register/register.claim
     events:
       - http:
           path: claim
           method: post
+          authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda   
 
   # TWAIN Cloud APIs
 
-          
   getScanners:
     handler: api-cloud/scanners.getScanners
     events:
