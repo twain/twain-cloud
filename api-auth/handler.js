@@ -15,9 +15,9 @@ module.exports.callback =
 
 module.exports.refresh =
   (event, context, cb) =>
-    refreshHandler(event, cb);
+    refreshHandler(event, context, cb);
 
 module.exports.authorize =
   (event, context, cb) =>
-    authorizeHandler(event, cb);
+    authorizeHandler(event, context, cb);
 
