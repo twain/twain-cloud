@@ -1,6 +1,6 @@
 'use strict';
 
-const aws = require('aws-sdk');
+const aws = require('../aws');
 const doc = require('dynamodb-doc');
 
 const awsRegion = process.env.REGION;

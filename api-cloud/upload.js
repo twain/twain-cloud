@@ -1,7 +1,7 @@
 'use strict';
 
 const uuid = require('uuid');
-const AWS = require('aws-sdk');
+const AWS = require('../aws');
 const s3 = new AWS.S3({ signatureVersion: 'v4' });
 
 const bucket = process.env.TWAIN_BUCKET;

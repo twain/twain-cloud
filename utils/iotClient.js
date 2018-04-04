@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const AWS = require('../aws');
 var signUrl = require('aws-device-gateway-signed-url');
 
 const iotEndpoint = process.env.TWAIN_IOT_ENDPOINT;
@@ -46,6 +46,14 @@ module.exports.notifySesssion = function (sessionId, message) {
 };
 
 // TODO: remove duplication
-module.exports.getClientTopic = function (sessionId) {
-  return `twain/sessions/${sessionId}/fromCloud`;
-}
+module.exports.getClientTopic = function (scannerId, sessionId) {
+  return `twain/devices/${scannerId}/sessions/${sessionId}`;
+};
+
+module.exports.getDeviceTopic = function (scannerId) {
+  return `twain/devices/${scannerId}`;
+};
+
+module.exports.getCloudTopic = function () {
+  return 'twain/cloud';
+};

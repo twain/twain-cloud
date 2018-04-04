@@ -31,13 +31,16 @@
     "lodash": "^4.17.4",
     "mocha": "^5.0.0",
     "serverless": "^1.11.0",
+    "serverless-finch": "^1.4.0",
     "serverless-offline": "^3.13.3",
     "serverless-plugin-optimize": "^2.0.1-rc.1",
+    "serverless-plugin-tracing": "^2.0.0",
     "serverless-pseudo-parameters": "^1.1.6"
   },
   "dependencies": {
     "aws-device-gateway-signed-url": "^1.0.0",
     "aws-signature-v4": "^1.1.1",
+    "aws-xray-sdk": "^1.2.0",
     "bluebird": "^3.4.0",
     "decamelize": "^1.2.0",
     "dynamodb-doc": "^1.0.0",

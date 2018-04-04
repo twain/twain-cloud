@@ -1,6 +1,6 @@
 'use strict';
 
-const AWS = require('aws-sdk');
+const AWS = require('../../../aws');
 
 const log = require('../../helpers').log;
 

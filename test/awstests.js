@@ -1,7 +1,7 @@
 'use strict';
 require('chai').should();
 
-var aws = require('aws-sdk');
+var aws = require('../aws');
 // TODO: move to config
 aws.config.update({region: 'us-east-1'});
 

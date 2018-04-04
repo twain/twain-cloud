@@ -1,6 +1,6 @@
 'use strict';
 
-const AWS = require('aws-sdk');
+const AWS = require('../aws');
 const db = require('../utils/dbClient');
 const s3 = new AWS.S3({ signatureVersion: 'v4' });
 

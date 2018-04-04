@@ -3,7 +3,7 @@
 const table = process.env.CACHE_DB_NAME;
 
 // Common
-const AWS = require('aws-sdk');
+const AWS = require('../../../aws');
 
 const config = {
   region: AWS.config.region || process.env.REGION || 'eu-west-1',
