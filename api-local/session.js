@@ -11,11 +11,12 @@ const stopCapturing = require('./stopCapturing');
 const closeSession = require('./closeSession');
 
 module.exports.handler = (event, context, callback) => {
+  console.log(event);
 
   let handler = null;
   const body = event.body;
 
-  switch(body.method) {
+  switch (body.method) {
   case 'createSession':
     handler = createSession.handler;
     break;
@@ -50,5 +51,4 @@ module.exports.handler = (event, context, callback) => {
   } else {
     return callback('Method is not supported');
   }
-
 };

@@ -1,25 +1,26 @@
 'use strict';
 
+const iot = require('../utils/iotClient');
+
 module.exports.handler = (event, context, callback) => {
-
   const body = event.body;
+  const scannerId = event.path.scannerId;
 
-  const response = {
-    'kind': 'twainlocalscanner',
-    'commandId': body.commandId,
-    'method': 'startCapturing',
-    'results': {
-      'success': true,
-      'session': {
-        'sessionId': 'Session ID created by scanner for this session',
-        'revision': 1,
-        'state': 'capturing',
+  iot.notifyScanner(scannerId, { command: 'startCapturing' }).then(() => {
+    const response = {
+      'kind': 'twainlocalscanner',
+      'commandId': body.commandId,
+      'method': 'startCapturing',
+      'results': {
+        'success': true,
+        'session': {
+          'sessionId': 'Session ID created by scanner for this session',
+          'revision': 1,
+          'state': 'capturing'
+        }
       }
-    }
-  };
+    };
 
-  callback(null, response);
-
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
+    callback(null, response);
+  }).catch(callback);
 };

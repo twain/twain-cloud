@@ -1,0 +1,4 @@
+name: authorize
+resultTtlInSeconds: 0
+identitySource: method.request.header.Authorization
+identityValidationExpression: .*
