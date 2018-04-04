@@ -31,12 +31,12 @@ function refreshHandler(event, context, callback) {
           data.authorizationToken.payload,
           results.payload);
       }
-      const authorization_token =
+      const authorizationToken =
         utils.createToken(
           data.authorizationToken.payload,
           providerConfig.token_secret,
           data.authorizationToken.options);
-      callback(null, { authorization_token, refresh_token: data.refreshToken, id });
+      callback(null, { authorizationToken, refreshToken: data.refreshToken, id });
     })
     .catch(error => callback(JSON.stringify(error)));
 }

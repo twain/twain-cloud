@@ -36,6 +36,7 @@ const authorize = (event, context, callback) => {
       policy = utils.generatePolicy(data.id, 'Allow', event.methodArn);
       policy.context = policyContext(data);
     } catch (err) {
+      logger.error(err);
       error = 'Unauthorized';
     }
   } else {

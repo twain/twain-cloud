@@ -2,6 +2,8 @@
 
 const db = require('../utils/dbClient');
 const iot = require('../utils/iotClient');
+const { apiGatewayHandler } = require('../utils/lambda');
+
 const sessionsTable = process.env.TWAIN_SESSIONS_TABLE;
 const scannersTable = process.env.TWAIN_SCANNERS_TABLE;
 
@@ -27,25 +29,29 @@ function addImageBlock(sessionId, blockId) {
   return db.updateItem(params).promise();
 }
 
-module.exports.handler = (event, context, callback) => {
-  console.log(event);
-
+module.exports.handler = apiGatewayHandler((event, context, callback, env) => {
   const scannerId = event.scannerId;
   const sessionId = event.sessionId;
 
+  var processTask = Promise.resolve();
   switch (event.event) {
   case 'deviceStatusChanged':
-    updateScannerState(scannerId, event.status).then(function () {
-      // TODO: notify client
-      iot.notifySesssion(sessionId, event);
-    });
+    processTask = updateScannerState(scannerId, event.status);
     break;
   case 'imageBlockReady':
-    addImageBlock(sessionId, event.blockId).then(function () {
-      // TODO: notify client
-      iot.notifySesssion(sessionId, event);
-    });
+    processTask = addImageBlock(sessionId, event.blockId);
+    break;
   }
 
-  callback(null, {});
-};
+  processTask
+  .then(() => {
+    return iot.notifySesssion(sessionId, event);
+  })
+  .then(() => {
+    callback();
+  })
+  .catch(err => {
+    env.logger.error(err);
+    callback(err);
+  });
+});

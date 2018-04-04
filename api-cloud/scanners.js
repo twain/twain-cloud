@@ -1,15 +1,16 @@
 'use strict';
 
-const { initializeEnvironment } = require('../utils/lambda');
-const logger = require('../utils/logger');
-const uuid = require('uuid');
+const { apiGatewayHandler } = require('../utils/lambda');
 const db = require('../utils/dbClient');
+const iot = require('../utils/iotClient');
 
 const scannersTable = process.env.TWAIN_SCANNERS_TABLE;
 
-module.exports.getScanners = (event, context, callback) => {
-  initializeEnvironment(event, context, logger);
-  
+function getClientId(request) {
+  return request.principalId;
+}
+
+module.exports.getScanners = apiGatewayHandler((event, context, callback, env) => {
   let params = {
     TableName: scannersTable
   };
@@ -24,7 +25,7 @@ module.exports.getScanners = (event, context, callback) => {
 
   let scanners = [];
 
-  logger.info(`Loading scanners for clientId: ${clientId}`);
+  env.logger.info(`Loading scanners for clientId: ${clientId}`);
   db.scan(params, function onScan(err, data) {
     if (err) return callback(err);
 
@@ -33,7 +34,7 @@ module.exports.getScanners = (event, context, callback) => {
     // continue scanning if we have more movies, because
     // scan can retrieve a maximum of 1MB of data
     if (typeof data.LastEvaluatedKey !== 'undefined') {
-      console.log('Scanning for more...');
+      env.logger.debug('Scanning for more...');
       params.ExclusiveStartKey = data.LastEvaluatedKey;
       db.scan(params, onScan);
     } else {
@@ -41,39 +42,32 @@ module.exports.getScanners = (event, context, callback) => {
       callback(null, scanners);
     }
   });
-};
+});
 
-module.exports.loginScanner = (event, context, callback) => {
-  const scannerInfo = event.body;
-  console.log(scannerInfo);
+module.exports.getScannerStatus = apiGatewayHandler((event, context, callback, env) => {
+  // TODO: compare with scannerId passed in URL
+  let scannerId = getClientId(event);
 
-  // generate x-privet-token to authenticate further requests
-  scannerInfo['x-privet-token'] = uuid.v4();
-  scannerInfo.url = `/scanners/${scannerInfo.id}`;
-  scannerInfo.api = [
-    `/scanners/${scannerInfo.id}/privet/info`,
-    `/scanners/${scannerInfo.id}/privet/twaindirect/session`
-  ];
+  // generate signed MQTT Url
+  return iot.signMqttUrl(context)
+  // create session object 
+  .then(iotUrl => {
+    const deviceSession = {
+      type: 'mqtt',
+      url: iotUrl,
+      deviceTopic: iot.getDeviceTopic(scannerId),
+      cloudTopic: iot.getCloudTopic()
+    };
 
-  let apiKey = getClientId(event);
-  if (apiKey) {
-    scannerInfo.clientId = apiKey;
-  }
-
-  const params = {
-    TableName: scannersTable,
-    Item: scannerInfo
-  };
-
-  db.putItem(params, (err, data) => {
-    if (err) return callback(err);
-    callback(null, data);
+    return callback(null, deviceSession);
+  })
+  .catch(err => {
+    env.logger.error(err);
+    callback(err);
   });
-};
+});
 
-module.exports.deleteScanner = (event, context, callback) => {
-  initializeEnvironment(event, context, logger);
-
+module.exports.deleteScanner = apiGatewayHandler((event, context, callback, env) => {
   // TODO: add condition with user id to prevent unauthorized delete
   const scannerId = event.path.scannerId;
   const params = {
@@ -83,10 +77,6 @@ module.exports.deleteScanner = (event, context, callback) => {
     }
   };
 
-  logger.info(`Deleting scanner with id: ${scannerId}`);
+  env.logger.info(`Deleting scanner with id: ${scannerId}`);
   db.deleteItem(params, callback);
-};
-
-function getClientId(request) {
-  return request.principalId;
-}
+});

@@ -3,11 +3,10 @@
 const uuid = require('uuid');
 const db = require('../utils/dbClient');
 
-const logger = require('../utils/logger');
 const cache = require('../api-auth/storage/cacheStorage');
 const helpers = require('../api-auth/helpers');
 const slsAuth = require('serverless-authentication');
-const { initializeEnvironment } = require('../utils/lambda');
+const { apiGatewayHandler } = require('../utils/lambda');
 
 const config = slsAuth.config;
 const utils = slsAuth.utils;
@@ -19,11 +18,10 @@ const apiEndpoint = process.env.TWAIN_API;
 const webEndpoint = process.env.TWAIN_WEB;
 
 
-module.exports.submit = (event, context, callback) => {
-  initializeEnvironment(event, context, logger);
+module.exports.submit = apiGatewayHandler((event, context, callback, env) => {
 
   const scannerInfo = event.body;
-  logger.debug(scannerInfo);
+  env.logger.debug(scannerInfo);
 
   const scannerId = uuid.v4();
   const registrationToken = uuid.v4().substring(0, 8); // Use 8 "random" symbols as registration token
@@ -36,12 +34,13 @@ module.exports.submit = (event, context, callback) => {
     Item: scannerInfo
   };
 
-  logger.info(`Persisting scanner with id: ${scannerId} and registration token: ${registrationToken}`);
+  env.logger.info(`Persisting scanner with id: ${scannerId} and registration token: ${registrationToken}`);
   db.putItem(params).promise()
   .then(() => {
     const queryString = '?scannerId=' + scannerId;
 
     const response = {
+      scannerId: scannerId,
       registrationToken: registrationToken,
       pollingUrl: apiEndpoint + '/poll' + queryString,
       inviteUrl: webEndpoint + '/register/' + queryString
@@ -50,11 +49,9 @@ module.exports.submit = (event, context, callback) => {
     callback(null, response);
   })
   .catch(callback);
-};
+});
 
-module.exports.poll = (event, context, callback) => {
-  initializeEnvironment(event, context, logger);
-
+module.exports.poll = apiGatewayHandler((event, context, callback, env) => {
   const scannerId = event.query.scannerId;
 
   if (!scannerId) {
@@ -73,12 +70,12 @@ module.exports.poll = (event, context, callback) => {
     const scanner = data.Item;
 
     if (!scanner) {
-      logger.warning('Nothing was found for provided scannerId: ' + scannerId);
+      env.logger.warning('Nothing was found for provided scannerId: ' + scannerId);
       throw data;
     }
 
     if (!scanner.clientId) {
-      logger.warning('Scanner is not assigned to a client yet.');
+      env.logger.warning('Scanner is not assigned to a client yet.');
       throw data;
     }
 
@@ -86,24 +83,22 @@ module.exports.poll = (event, context, callback) => {
     .then(token => {
       const providerConfig = config({ provider: '', stage: event.stage });
       const data = Object.assign(createResponseData(scannerId), { refreshToken: token });
-      const authorization_token = utils.createToken(data.authorizationToken.payload, providerConfig.token_secret, data.authorizationToken.options);
-      callback(null, { success: true, authorization_token, refresh_token: token });
+      const authorizationToken = utils.createToken(data.authorizationToken.payload, providerConfig.token_secret, data.authorizationToken.options);
+      callback(null, { success: true, authorizationToken, refreshToken: token });
     });
   })
   .catch(error => {
-    logger.error(error);
+    env.logger.error(error);
     callback(null, { success: false, message: 'Unknown scanner identifier' });
   });
  
-};
+});
 
-module.exports.claim = (event, context, callback) => {
-  initializeEnvironment(event, context, logger);
-
+module.exports.claim = apiGatewayHandler((event, context, callback, env) => {
   const clientId = event.principalId;
   const claimInfo = event.body;
 
-  logger.debug(claimInfo);
+  env.logger.debug(claimInfo);
 
   const searchParams = {
     TableName: scannersTable,
@@ -116,7 +111,7 @@ module.exports.claim = (event, context, callback) => {
   .then(data => {
 
     const scanner = data.Item;
-    logger.info('retrieved scanner: ' + scanner);
+    env.logger.info('retrieved scanner: ' + scanner);
 
     if (scanner.registrationToken === claimInfo.registrationToken) {
       const updateParams = {
@@ -134,11 +129,14 @@ module.exports.claim = (event, context, callback) => {
       return db.updateItem(updateParams).promise()
       .then(data => {
         callback(null, data.Attributes);
-      });      
+      });
     }
     else {
       callback('invalid scanner id: ' + claimInfo.scannerId);
     }
   })
-  .catch(callback);
-};
+  .catch(err => {
+    env.logger.error(err);
+    callback(err);
+  });
+});

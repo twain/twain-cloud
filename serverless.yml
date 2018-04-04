@@ -3,6 +3,10 @@ service: twain-cloud # NOTE: update this with your service name
 local: ${file(serverless.local.yml)} # local settings
 
 custom:
+  client:
+    bucketName: ${self:provider.environment.TWAIN_WEB_BUCKET} 
+    #twain-cloud-web-${self:provider.environment.STAGE}-431432236483
+    distributionFolder: web
   optimize:
       global: true
       debug: false
@@ -13,37 +17,45 @@ plugins:
   - serverless-plugin-optimize
   - serverless-offline
   - serverless-pseudo-parameters
+  - serverless-finch
+  - serverless-plugin-tracing
 
 provider:
   name: aws
   runtime: nodejs6.10
   stage: dev
   region: us-east-1
+  tracing: true # enable X-Ray tracing
 
   environment:
     # General
     SERVICE: ${self:service}
     STAGE: ${opt:stage, self:provider.stage}
     REGION: ${opt:region, self:provider.region}
-    # Databases
-    TWAIN_SESSIONS_TABLE: ${self:service}-sessions-${opt:stage, self:provider.stage}
-    TWAIN_SCANNERS_TABLE: ${self:service}-scanners-${opt:stage, self:provider.stage}
-    CACHE_DB_NAME: ${self:service}-cache-${opt:stage, self:provider.stage}
-    USERS_DB_NAME: ${self:service}-users-${opt:stage, self:provider.stage}
-    # Auth General 
-    REDIRECT_CLIENT_URI: https://twain.hazybits.com
-    TOKEN_SECRET: token-secret-123
-    # Auth Providers
+
+    # TO BE CUSTOMIZED
+    TWAIN_WEB_BUCKET: twain-cloud-web-${self:provider.environment.STAGE}-431432236483
+    TWAIN_IOT_ENDPOINT: "ashv9pltntu45.iot.us-east-1.amazonaws.com"
     PROVIDER_FACEBOOK_ID: 1392707264191692
-    # TODO: remove this!
     PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
+
+    # Databases
+    TWAIN_SESSIONS_TABLE: ${self:service}-sessions-${self:provider.environment.STAGE}
+    TWAIN_SCANNERS_TABLE: ${self:service}-scanners-${self:provider.environment.STAGE}
+    CACHE_DB_NAME: ${self:service}-cache-${self:provider.environment.STAGE}
+    USERS_DB_NAME: ${self:service}-users-${self:provider.environment.STAGE}
+
     # TWAIN Cloud
-    TWAIN_BUCKET: "twain-cloud-bucket-#{AWS::AccountId}"
-    TWAIN_API: https://api.twain.hazybits.com
-    TWAIN_WEB: https://twain.hazybits.com    
-    # TODO: replace this with value of your IoT endpoint!
-    TWAIN_IOT_ENDPOINT: "a1dy1wda84cvk3.iot.us-east-1.amazonaws.com"
+    TWAIN_BUCKET: twain-cloud-bucket-#{AWS::AccountId}
+    TWAIN_API: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.environment.REGION}.amazonaws.com/${self:provider.environment.STAGE}" ] ]  }
+    
+    # [Important Note] S3 web site hosting creates HTTP endpoint. Use CloudFront to setup secure HTTPS web site.
+    TWAIN_WEB: http://${self:provider.environment.TWAIN_WEB_BUCKET}.s3-website-${self:provider.environment.REGION}.amazonaws.com
     TWAIN_IOT_ROLE: "twain-role-iot"
+
+    # Auth General 
+    REDIRECT_CLIENT_URI: ${self:provider.environment.TWAIN_WEB}
+    TOKEN_SECRET: token-secret-123
 
   iamRoleStatements:
     - Effect: "Allow"
@@ -73,6 +85,12 @@ provider:
       Action:
         - 'iot:Publish'
       Resource: "*"
+    - Effect: "Allow" # xray permissions (required)
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
 
 package:
   individually: true
@@ -125,12 +143,12 @@ functions:
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
-  loginScanner:
-    handler: api-cloud/scanners.loginScanner
+  getScannerStatus:
+    handler: api-cloud/scanners.getScannerStatus
     events:
       - http:
-          path: scanners
-          method: post
+          path: scanners/{scannerId}
+          method: get
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
