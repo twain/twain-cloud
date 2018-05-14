@@ -144,7 +144,7 @@ functions:
           integration: lambda
 
   getScanners:
-    handler: api-cloud/scanners.getScanners
+    handler: api-cloud/getScanners.handler
     events:
       - http:
           path: scanners
@@ -154,7 +154,7 @@ functions:
           integration: lambda
 
   getScannerStatus:
-    handler: api-cloud/scanners.getScannerStatus
+    handler: api-cloud/getScannerStatus.handler
     events:
       - http:
           path: scanners/{scannerId}
@@ -164,7 +164,7 @@ functions:
           integration: lambda
 
   deleteScanner:
-    handler: api-cloud/scanners.deleteScanner
+    handler: api-cloud/deleteScanner.handler
     events:
       - http:
           path: scanners/{scannerId}
