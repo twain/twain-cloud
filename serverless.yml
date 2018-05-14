@@ -104,7 +104,7 @@ functions:
   # Registration APIs
 
   register:
-    handler: api-register/register.submit
+    handler: api-register/register.handler
     events:
       - http:
           path: register
@@ -113,7 +113,7 @@ functions:
           integration: lambda    
 
   poll:
-    handler: api-register/register.poll
+    handler: api-register/poll.handler
     events:
       - http:
           path: poll
@@ -122,7 +122,7 @@ functions:
           integration: lambda   
 
   claim:
-    handler: api-register/register.claim
+    handler: api-register/claim.handler
     events:
       - http:
           path: claim
