@@ -23,14 +23,14 @@ module.exports.signMqttUrl = function signMqttUrl(context) {
   const sts = new AWS.STS();
   return sts.assumeRole(params).promise()
   .then(role => {
-    var signedUrl = signUrl({
+    const credentials = role.Credentials;
+    return signUrl({
       regionName: process.env.REGION,
       endpoint: iotEndpoint,
-      accessKey: role.Credentials.AccessKeyId,
-      secretKey: role.Credentials.SecretAccessKey,
-      sessionToken: role.Credentials.SessionToken
+      accessKey: credentials.AccessKeyId,
+      secretKey: credentials.SecretAccessKey,
+      sessionToken: credentials.SessionToken
     });
-    return signedUrl;
   });
 };
 
@@ -57,7 +57,7 @@ module.exports.getDeviceRequestTopic = function (scannerId) {
 
 module.exports.getDeviceResponseTopic = function (userId) {
   // TODO: ideally, it would be session ID. Let's think about this a bit.
-  var randomTopicId = uuid.v4();
+  const randomTopicId = uuid.v4();
   return `twain/users/${userId}/${randomTopicId}`;
 };
 

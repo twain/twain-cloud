@@ -12,8 +12,8 @@ module.exports.handler = apiGatewayHandler((event, context, callback, env) => {
   const scannerId = event.path.scannerId;
   const resourcePath = event.resourcePath;
 
-  var template = 'https://{apiId}.execute-api.{region}.amazonaws.com/{stage}' + resourcePath;
-  var url = template
+  const template = 'https://{apiId}.execute-api.{region}.amazonaws.com/{stage}' + resourcePath;
+  const url = template
     .replace('{apiId}', event.apiId)
     .replace('{region}', REGION)
     .replace('{stage}', event.stage)

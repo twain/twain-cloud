@@ -5,7 +5,7 @@ function apiGatewayHandler(handler) {
   return (event, context, callback) => {
     logger.initialize(event, context);
     logger.scope('Request Scope', () => {
-      return handler(event, context, callback,  { logger });
+      return handler(event, context, callback, { logger });
     });
   };
 }
