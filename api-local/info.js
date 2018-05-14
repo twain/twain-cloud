@@ -1,20 +1,31 @@
 'use strict';
-
-const scannersTable = process.env.TWAIN_SCANNERS_TABLE;
-const db = require('../utils/dbClient');
+const REGION = process.env.REGION;
+const iot = require('../utils/iotClient');
 
 module.exports.handler = (event, context, callback) => {
+  console.log(event);
 
-  const params = {
-    TableName: scannersTable,
-    Key:{
-      'id': event.path.scannerId
-    }
-  };
+  const body = event.body;
+  const method = event.method;
+  const headers = event.headers;
+  const scannerId = event.path.scannerId;
+  const resourcePath = event.resourcePath;
 
-  db.getItem(params, function(err, data) {
-    if (err) return callback(err);
+  var template = 'https://{apiId}.execute-api.{region}.amazonaws.com/{stage}' + resourcePath;
+  var url = template
+    .replace('{apiId}', event.apiId)
+    .replace('{region}', REGION)
+    .replace('{stage}', event.stage)
+    .replace('{scannerId}', event.path.scannerId);
 
-    callback(null, data);
-  });
+  // TODO: check scanner is online
+
+  return iot.notifyScanner(scannerId, { 
+    headers,
+    method, 
+    url,
+    body: JSON.stringify(body)
+  })
+  .then(() => { callback(null, {}); })
+  .catch(callback);
 };
