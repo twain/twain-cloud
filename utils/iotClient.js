@@ -1,5 +1,6 @@
 const AWS = require('../aws');
-var signUrl = require('aws-device-gateway-signed-url');
+const signUrl = require('aws-device-gateway-signed-url');
+const uuid = require('uuid');
 
 const iotEndpoint = process.env.TWAIN_IOT_ENDPOINT;
 this._iotData = new AWS.IotData({ endpoint: iotEndpoint });
@@ -35,7 +36,7 @@ module.exports.signMqttUrl = function signMqttUrl(context) {
 
 module.exports.notifyScanner = function (scannerId, message) {
   let stringMessage = JSON.stringify(message);
-  const params = { topic: `twain/scanners/${scannerId}/fromCloud`, payload: stringMessage, qos: 0 };
+  const params = { topic: this.getDeviceRequestTopic(scannerId), payload: stringMessage, qos: 0 };
   return this._iotData.publish(params).promise();
 };
 
@@ -46,12 +47,18 @@ module.exports.notifySesssion = function (sessionId, message) {
 };
 
 // TODO: remove duplication
-module.exports.getClientTopic = function (scannerId, sessionId) {
-  return `twain/devices/${scannerId}/sessions/${sessionId}`;
+module.exports.getClientTopic = function (userId) {
+  return `twain/users/${userId}/+`;
 };
 
-module.exports.getDeviceTopic = function (scannerId) {
+module.exports.getDeviceRequestTopic = function (scannerId) {
   return `twain/devices/${scannerId}`;
+};
+
+module.exports.getDeviceResponseTopic = function (userId) {
+  // TODO: ideally, it would be session ID. Let's think about this a bit.
+  var randomTopicId = uuid.v4();
+  return `twain/users/${userId}/${randomTopicId}`;
 };
 
 module.exports.getCloudTopic = function () {
