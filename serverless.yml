@@ -133,6 +133,16 @@ functions:
 
   # TWAIN Cloud APIs
 
+  user:
+    handler: api-cloud/user.handler
+    events:
+      - http:
+          path: user
+          method: get
+          authorizer: ${file(./serverless.auth.yml)}
+          cors: ${file(./serverless.cors.yml)}
+          integration: lambda
+
   getScanners:
     handler: api-cloud/scanners.getScanners
     events:
@@ -163,12 +173,22 @@ functions:
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
-  upload:
+  uploadBlock:
     handler: api-cloud/upload.handler
     events:
       - http:
-          path: scanners/{scannerId}
+          path: scanners/{scannerId}/blocks
           method: post
+          authorizer: ${file(./serverless.auth.yml)}
+          cors: ${file(./serverless.cors.yml)}
+          integration: lambda
+
+  downloadBlock:
+    handler: api-cloud/download.handler
+    events:
+      - http:
+          path: scanners/{scannerId}/blocks/{blockId}
+          method: get
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
@@ -184,10 +204,10 @@ functions:
   # TWAIN Local APIs
 
   infoex:
-    handler: api-local/info.handler
+    handler: api-local/direct.handler
     events:
       - http:
-          path: scanners/{scannerId}/infoex
+          path: scanners/{scannerId}/privet/infoex
           method: get
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
@@ -197,13 +217,13 @@ functions:
               paths:
                 scannerId: true
             template:
-              application/json: ${file(api-local/info.req.vm)}
+              application/json: ${file(api-local/direct.req.vm)}
 
   session:
-    handler: api-local/session.handler
+    handler: api-local/direct.handler
     events:
       - http:
-          path: scanners/{scannerId}/twaindirect/session
+          path: scanners/{scannerId}/privet/twaindirect/session
           method: post
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
@@ -213,7 +233,7 @@ functions:
               paths:
                 scannerId: true
             template:
-              application/json: ${file(api-local/session.req.vm)}
+              application/json: ${file(api-local/direct.req.vm)}
 
   # Authentication APIs
 
