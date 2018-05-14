@@ -48,18 +48,21 @@ module.exports.getScannerStatus = apiGatewayHandler((event, context, callback, e
   // TODO: compare with scannerId passed in URL
   let scannerId = getClientId(event);
 
-  // generate signed MQTT Url
-  return iot.signMqttUrl(context)
-  // create session object 
-  .then(iotUrl => {
-    const deviceSession = {
-      type: 'mqtt',
-      url: iotUrl,
-      deviceTopic: iot.getDeviceTopic(scannerId),
-      cloudTopic: iot.getCloudTopic()
-    };
+  return db.getScannerById(scannerId)
+  .then(scanner => {
+    // generate signed MQTT Url
+    return iot.signMqttUrl(context)
+    // create session object 
+    .then(iotUrl => {
+      const deviceSession = {
+        type: 'mqtt',
+        url: iotUrl,
+        requestTopic: iot.getDeviceRequestTopic(scannerId),
+        responseTopic: iot.getDeviceResponseTopic(scanner.clientId)
+      };
 
-    return callback(null, deviceSession);
+      return callback(null, deviceSession);
+    });
   })
   .catch(err => {
     env.logger.error(err);
