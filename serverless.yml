@@ -3,10 +3,6 @@ service: twain-cloud # NOTE: update this with your service name
 local: ${file(serverless.local.yml)} # local settings
 
 custom:
-  client:
-    bucketName: ${self:provider.environment.TWAIN_WEB_BUCKET} 
-    #twain-cloud-web-${self:provider.environment.STAGE}-431432236483
-    distributionFolder: web
   optimize:
       global: true
       debug: false
@@ -17,7 +13,6 @@ plugins:
   - serverless-plugin-optimize
   - serverless-offline
   - serverless-pseudo-parameters
-  - serverless-finch
   - serverless-plugin-tracing
 
 provider:
@@ -40,7 +35,6 @@ provider:
     PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
 
     # Databases
-    TWAIN_SESSIONS_TABLE: ${self:service}-sessions-${self:provider.environment.STAGE}
     TWAIN_SCANNERS_TABLE: ${self:service}-scanners-${self:provider.environment.STAGE}
     CACHE_DB_NAME: ${self:service}-cache-${self:provider.environment.STAGE}
     USERS_DB_NAME: ${self:service}-users-${self:provider.environment.STAGE}
@@ -48,12 +42,12 @@ provider:
     # TWAIN Cloud
     TWAIN_BUCKET: twain-cloud-bucket-#{AWS::AccountId}
     TWAIN_API: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.environment.REGION}.amazonaws.com/${self:provider.environment.STAGE}" ] ]  }
-    
+
     # [Important Note] S3 web site hosting creates HTTP endpoint. Use CloudFront to setup secure HTTPS web site.
     TWAIN_WEB: http://${self:provider.environment.TWAIN_WEB_BUCKET}.s3-website-${self:provider.environment.REGION}.amazonaws.com
     TWAIN_IOT_ROLE: "twain-role-iot"
 
-    # Auth General 
+    # Auth General
     REDIRECT_CLIENT_URI: ${self:provider.environment.TWAIN_WEB}
     TOKEN_SECRET: token-secret-123
 
@@ -300,21 +294,6 @@ resources:
             - "*"
 
     # TWAIN Cloud Tables
-    TwainSessionsTable:
-      Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Retain
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: sessionId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: sessionId
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
-        TableName: ${self:provider.environment.TWAIN_SESSIONS_TABLE}
-
     TwainScannersTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
@@ -363,6 +342,7 @@ resources:
           WriteCapacityUnits: 1
         TableName: ${self:provider.environment.USERS_DB_NAME}
 
+    # Roles
     GenerateIoTKeysRole:
       Type: AWS::IAM::Role
       Properties:

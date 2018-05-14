@@ -22,7 +22,7 @@
   "license": "ISC",
   "homepage": "https://github.com/twain/twain-cloud",
   "devDependencies": {
-    "aws-sdk": "^2.41.0",
+    "aws-sdk": "^2.238.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-es2016": "^6.24.1",
     "chai": "^4.1.2",
@@ -31,7 +31,6 @@
     "lodash": "^4.17.4",
     "mocha": "^5.0.0",
     "serverless": "^1.11.0",
-    "serverless-finch": "^1.4.0",
     "serverless-offline": "^3.13.3",
     "serverless-plugin-optimize": "^2.0.1-rc.1",
     "serverless-plugin-tracing": "^2.0.0",
@@ -49,6 +48,6 @@
     "serverless-authentication-google": "^0.3.2",
     "serverless-authentication-microsoft": "^0.3.2",
     "url-join": "^4.0.0",
-    "uuid": "^3.0.1"
+    "uuid": "^3.2.1"
   }
 }
