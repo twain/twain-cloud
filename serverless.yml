@@ -29,8 +29,7 @@ provider:
     REGION: ${opt:region, self:provider.region}
 
     # TO BE CUSTOMIZED
-    TWAIN_WEB_BUCKET: twain-cloud-web-${self:provider.environment.STAGE}-431432236483
-    TWAIN_IOT_ENDPOINT: "ashv9pltntu45.iot.us-east-1.amazonaws.com"
+    TWAIN_IOT_ENDPOINT: "a23w76das7e02.iot.us-east-1.amazonaws.com"
     PROVIDER_FACEBOOK_ID: 1392707264191692
     PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
 
@@ -41,10 +40,8 @@ provider:
 
     # TWAIN Cloud
     TWAIN_BUCKET: twain-cloud-bucket-#{AWS::AccountId}
-    TWAIN_API: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.environment.REGION}.amazonaws.com/${self:provider.environment.STAGE}" ] ]  }
-
-    # [Important Note] S3 web site hosting creates HTTP endpoint. Use CloudFront to setup secure HTTPS web site.
-    TWAIN_WEB: http://${self:provider.environment.TWAIN_WEB_BUCKET}.s3-website-${self:provider.environment.REGION}.amazonaws.com
+    TWAIN_API: https://api-twain.hazybits.com/${self:provider.environment.STAGE}
+    TWAIN_WEB: https://twain.hazybits.com
     TWAIN_IOT_ROLE: "twain-role-iot"
 
     # Auth General
