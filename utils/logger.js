@@ -19,7 +19,8 @@ const logLevels = {
  * @constructor
  */
 function Logger() {
-  var me = this;
+  const me = this;
+
   function createLogger(level) {
     const loggerLevel = logLevels[level];
 
@@ -66,8 +67,8 @@ function Logger() {
     if (context && context.invokedFunctionArn) {
       // Lambda ARN has the following structure:
       // arn:partition:service:region:account-id:function:lambda-name
-      var arn = context.invokedFunctionArn.split(':');
-  
+      const arn = context.invokedFunctionArn.split(':');
+
       // 3th ARN component (region)
       me.awsRegion = arn[3];
       // 4th ARN component (account-id)
@@ -124,7 +125,7 @@ function Logger() {
       }]);
     };
 
-    var result;
+    let result;
     try {
       result = isPromise(body) ? body : body();
     } finally {
@@ -148,5 +149,5 @@ function Logger() {
   };
 }
 
-var logger = new Logger();
+const logger = new Logger();
 module.exports = logger;

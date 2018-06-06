@@ -1,5 +1,6 @@
 const AWS = require('../aws');
-var signUrl = require('aws-device-gateway-signed-url');
+const signUrl = require('aws-device-gateway-signed-url');
+const uuid = require('uuid');
 
 const iotEndpoint = process.env.TWAIN_IOT_ENDPOINT;
 this._iotData = new AWS.IotData({ endpoint: iotEndpoint });
@@ -22,20 +23,20 @@ module.exports.signMqttUrl = function signMqttUrl(context) {
   const sts = new AWS.STS();
   return sts.assumeRole(params).promise()
   .then(role => {
-    var signedUrl = signUrl({
+    const credentials = role.Credentials;
+    return signUrl({
       regionName: process.env.REGION,
       endpoint: iotEndpoint,
-      accessKey: role.Credentials.AccessKeyId,
-      secretKey: role.Credentials.SecretAccessKey,
-      sessionToken: role.Credentials.SessionToken
+      accessKey: credentials.AccessKeyId,
+      secretKey: credentials.SecretAccessKey,
+      sessionToken: credentials.SessionToken
     });
-    return signedUrl;
   });
 };
 
 module.exports.notifyScanner = function (scannerId, message) {
   let stringMessage = JSON.stringify(message);
-  const params = { topic: `twain/scanners/${scannerId}/fromCloud`, payload: stringMessage, qos: 0 };
+  const params = { topic: this.getDeviceRequestTopic(scannerId), payload: stringMessage, qos: 0 };
   return this._iotData.publish(params).promise();
 };
 
@@ -46,12 +47,18 @@ module.exports.notifySesssion = function (sessionId, message) {
 };
 
 // TODO: remove duplication
-module.exports.getClientTopic = function (scannerId, sessionId) {
-  return `twain/devices/${scannerId}/sessions/${sessionId}`;
+module.exports.getClientTopic = function (userId) {
+  return `twain/users/${userId}/+`;
 };
 
-module.exports.getDeviceTopic = function (scannerId) {
+module.exports.getDeviceRequestTopic = function (scannerId) {
   return `twain/devices/${scannerId}`;
+};
+
+module.exports.getDeviceResponseTopic = function (userId) {
+  // TODO: ideally, it would be session ID. Let's think about this a bit.
+  const randomTopicId = uuid.v4();
+  return `twain/users/${userId}/${randomTopicId}`;
 };
 
 module.exports.getCloudTopic = function () {

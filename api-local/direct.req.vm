@@ -13,10 +13,12 @@
 #end
 
 {
+  "apiId": "$context.apiId",
   "body" : $body,
   "method": "$context.httpMethod",
   "principalId": "$context.authorizer.principalId",
   "stage": "$context.stage",
+  "resourcePath": "$context.resourcePath",
 
   "apiRequestId" : "$context.requestId",
 

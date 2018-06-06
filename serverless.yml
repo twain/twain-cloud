@@ -3,10 +3,6 @@ service: twain-cloud # NOTE: update this with your service name
 local: ${file(serverless.local.yml)} # local settings
 
 custom:
-  client:
-    bucketName: ${self:provider.environment.TWAIN_WEB_BUCKET} 
-    #twain-cloud-web-${self:provider.environment.STAGE}-431432236483
-    distributionFolder: web
   optimize:
       global: true
       debug: false
@@ -17,7 +13,6 @@ plugins:
   - serverless-plugin-optimize
   - serverless-offline
   - serverless-pseudo-parameters
-  - serverless-finch
   - serverless-plugin-tracing
 
 provider:
@@ -34,26 +29,22 @@ provider:
     REGION: ${opt:region, self:provider.region}
 
     # TO BE CUSTOMIZED
-    TWAIN_WEB_BUCKET: twain-cloud-web-${self:provider.environment.STAGE}-431432236483
-    TWAIN_IOT_ENDPOINT: "ashv9pltntu45.iot.us-east-1.amazonaws.com"
+    TWAIN_IOT_ENDPOINT: "a23w76das7e02.iot.us-east-1.amazonaws.com"
     PROVIDER_FACEBOOK_ID: 1392707264191692
     PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
 
     # Databases
-    TWAIN_SESSIONS_TABLE: ${self:service}-sessions-${self:provider.environment.STAGE}
     TWAIN_SCANNERS_TABLE: ${self:service}-scanners-${self:provider.environment.STAGE}
     CACHE_DB_NAME: ${self:service}-cache-${self:provider.environment.STAGE}
     USERS_DB_NAME: ${self:service}-users-${self:provider.environment.STAGE}
 
     # TWAIN Cloud
     TWAIN_BUCKET: twain-cloud-bucket-#{AWS::AccountId}
-    TWAIN_API: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.environment.REGION}.amazonaws.com/${self:provider.environment.STAGE}" ] ]  }
-    
-    # [Important Note] S3 web site hosting creates HTTP endpoint. Use CloudFront to setup secure HTTPS web site.
-    TWAIN_WEB: http://${self:provider.environment.TWAIN_WEB_BUCKET}.s3-website-${self:provider.environment.REGION}.amazonaws.com
+    TWAIN_API: https://api-twain.hazybits.com/${self:provider.environment.STAGE}
+    TWAIN_WEB: https://twain.hazybits.com
     TWAIN_IOT_ROLE: "twain-role-iot"
 
-    # Auth General 
+    # Auth General
     REDIRECT_CLIENT_URI: ${self:provider.environment.TWAIN_WEB}
     TOKEN_SECRET: token-secret-123
 
@@ -104,7 +95,7 @@ functions:
   # Registration APIs
 
   register:
-    handler: api-register/register.submit
+    handler: api-register/register.handler
     events:
       - http:
           path: register
@@ -113,7 +104,7 @@ functions:
           integration: lambda    
 
   poll:
-    handler: api-register/register.poll
+    handler: api-register/poll.handler
     events:
       - http:
           path: poll
@@ -122,7 +113,7 @@ functions:
           integration: lambda   
 
   claim:
-    handler: api-register/register.claim
+    handler: api-register/claim.handler
     events:
       - http:
           path: claim
@@ -133,8 +124,18 @@ functions:
 
   # TWAIN Cloud APIs
 
+  user:
+    handler: api-cloud/user.handler
+    events:
+      - http:
+          path: user
+          method: get
+          authorizer: ${file(./serverless.auth.yml)}
+          cors: ${file(./serverless.cors.yml)}
+          integration: lambda
+
   getScanners:
-    handler: api-cloud/scanners.getScanners
+    handler: api-cloud/getScanners.handler
     events:
       - http:
           path: scanners
@@ -144,7 +145,7 @@ functions:
           integration: lambda
 
   getScannerStatus:
-    handler: api-cloud/scanners.getScannerStatus
+    handler: api-cloud/getScannerStatus.handler
     events:
       - http:
           path: scanners/{scannerId}
@@ -154,7 +155,7 @@ functions:
           integration: lambda
 
   deleteScanner:
-    handler: api-cloud/scanners.deleteScanner
+    handler: api-cloud/deleteScanner.handler
     events:
       - http:
           path: scanners/{scannerId}
@@ -163,12 +164,22 @@ functions:
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
 
-  upload:
+  uploadBlock:
     handler: api-cloud/upload.handler
     events:
       - http:
-          path: scanners/{scannerId}
+          path: scanners/{scannerId}/blocks
           method: post
+          authorizer: ${file(./serverless.auth.yml)}
+          cors: ${file(./serverless.cors.yml)}
+          integration: lambda
+
+  downloadBlock:
+    handler: api-cloud/download.handler
+    events:
+      - http:
+          path: scanners/{scannerId}/blocks/{blockId}
+          method: get
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
           integration: lambda
@@ -184,10 +195,10 @@ functions:
   # TWAIN Local APIs
 
   infoex:
-    handler: api-local/info.handler
+    handler: api-local/direct.handler
     events:
       - http:
-          path: scanners/{scannerId}/infoex
+          path: scanners/{scannerId}/privet/infoex
           method: get
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
@@ -197,13 +208,13 @@ functions:
               paths:
                 scannerId: true
             template:
-              application/json: ${file(api-local/info.req.vm)}
+              application/json: ${file(api-local/direct.req.vm)}
 
   session:
-    handler: api-local/session.handler
+    handler: api-local/direct.handler
     events:
       - http:
-          path: scanners/{scannerId}/twaindirect/session
+          path: scanners/{scannerId}/privet/twaindirect/session
           method: post
           authorizer: ${file(./serverless.auth.yml)}
           cors: ${file(./serverless.cors.yml)}
@@ -213,7 +224,7 @@ functions:
               paths:
                 scannerId: true
             template:
-              application/json: ${file(api-local/session.req.vm)}
+              application/json: ${file(api-local/direct.req.vm)}
 
   # Authentication APIs
 
@@ -280,21 +291,6 @@ resources:
             - "*"
 
     # TWAIN Cloud Tables
-    TwainSessionsTable:
-      Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Retain
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: sessionId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: sessionId
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
-        TableName: ${self:provider.environment.TWAIN_SESSIONS_TABLE}
-
     TwainScannersTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
@@ -343,6 +339,7 @@ resources:
           WriteCapacityUnits: 1
         TableName: ${self:provider.environment.USERS_DB_NAME}
 
+    # Roles
     GenerateIoTKeysRole:
       Type: AWS::IAM::Role
       Properties:

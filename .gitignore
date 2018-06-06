@@ -1,5 +1,6 @@
 # Serverless directories
 .serverless
+.idea
 
 # Logs
 logs
