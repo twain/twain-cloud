@@ -3,7 +3,8 @@ service: twain-cloud # NOTE: update this with your service name
 local: ${file(serverless.local.yml)} # local settings
 
 custom:
-  overrides: ${file(./serverless.overrides.${self:provider.stage}.yml)}
+  deployment: ${opt:deployment, 'private'} 
+  overrides: ${file(./serverless.overrides.${self:custom.deployment}.yml)}
 
   optimize:
     global: true
@@ -49,10 +50,10 @@ provider:
     TOKEN_SECRET: token-secret-123
 
     # Auth Providers
-    PROVIDER_FACEBOOK_ID: 1392707264191692
-    PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
-    PROVIDER_GOOGLE_ID: 257465572905-f4p49mbc8ee9cn2qvevjpui2elcg06ig.apps.googleusercontent.com
-    PROVIDER_GOOGLE_SECRET: eytH5VcNEcjk9dTpKwrBrTOS
+    PROVIDER_FACEBOOK_ID: ${self:custom.overrides.PROVIDER_FACEBOOK_ID}
+    PROVIDER_FACEBOOK_SECRET: ${self:custom.overrides.PROVIDER_FACEBOOK_SECRET}
+    PROVIDER_GOOGLE_ID: ${self:custom.overrides.PROVIDER_GOOGLE_ID}
+    PROVIDER_GOOGLE_SECRET: ${self:custom.overrides.PROVIDER_GOOGLE_SECRET}
 
   iamRoleStatements:
     - Effect: "Allow"
