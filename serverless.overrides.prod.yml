@@ -1,0 +1,3 @@
+TWAIN_IOT_ENDPOINT: a23w76das7e02.iot.us-east-1.amazonaws.com
+TWAIN_API: https://api-twain.hazybits.com/${self:provider.stage}
+TWAIN_WEB: https://twain.hazybits.com

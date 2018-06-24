@@ -1,0 +1,3 @@
+TWAIN_IOT_ENDPOINT: ashv9pltntu45.iot.us-east-1.amazonaws.com
+TWAIN_API: https://m4p8tzmgs5.execute-api.us-east-1.amazonaws.com/${self:provider.stage}
+TWAIN_WEB: http://twain-cloud-web-dev-431432236483.s3-website-us-east-1.amazonaws.com
