@@ -4,7 +4,7 @@ local: ${file(serverless.local.yml)} # local settings
 
 custom:
   deployment: ${opt:deployment, 'private'} 
-  overrides: ${file(./serverless.overrides.${self:custom.deployment}.yml)}
+  overrides: ${file(./serverless.deployment.${self:custom.deployment}.yml)}
 
   optimize:
     global: true
