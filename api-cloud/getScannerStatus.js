@@ -5,8 +5,7 @@ const db = require('../utils/dbClient');
 const iot = require('../utils/iotClient');
 
 module.exports.handler = apiGatewayHandler((event, context, callback, env) => {
-  // TODO: compare with scannerId passed in URL
-  let scannerId = event.principalId;
+  let scannerId = event.path.scannerId;
 
   return db.getScannerById(scannerId)
     .then(scanner => {
