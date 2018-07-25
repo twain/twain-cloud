@@ -8,7 +8,7 @@ const utils = slsAuth.utils;
 
 // Providers
 const facebook = require('serverless-authentication-facebook');
-//const google = require('serverless-authentication-google');
+const google = require('serverless-authentication-google');
 //const microsoft = require('serverless-authentication-microsoft');
 
 // Common
@@ -45,10 +45,13 @@ function signinHandler(proxyEvent, context) {
             redirectProxyCallback(context, data);
           });
         break;
-      // case 'google':
-      //   google.signinHandler(providerConfig, { scope: 'profile email', state },
-      //     (err, data) => redirectProxyCallback(context, data));
-      //   break;
+      case 'google':
+        google.signinHandler(providerConfig, { scope: 'profile email', state },
+          (err, data) => {
+            console.log(err);
+            redirectProxyCallback(context, data);
+          });
+        break;
       // case 'microsoft':
       //   microsoft.signinHandler(providerConfig, { scope: 'wl.basic wl.emails', state },
       //     (err, data) => redirectProxyCallback(context, data));

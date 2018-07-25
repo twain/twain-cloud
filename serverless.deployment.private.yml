@@ -1,0 +1,9 @@
+TWAIN_WEB: http://twain-cloud-web-dev-431432236483.s3-website-us-east-1.amazonaws.com
+TWAIN_API: https://m4p8tzmgs5.execute-api.us-east-1.amazonaws.com/${self:provider.stage}
+
+TWAIN_IOT_ENDPOINT: ashv9pltntu45.iot.us-east-1.amazonaws.com
+
+PROVIDER_FACEBOOK_ID: 1392707264191692
+PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
+PROVIDER_GOOGLE_ID: 257465572905-f4p49mbc8ee9cn2qvevjpui2elcg06ig.apps.googleusercontent.com
+PROVIDER_GOOGLE_SECRET: eytH5VcNEcjk9dTpKwrBrTOS

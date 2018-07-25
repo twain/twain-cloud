@@ -84,6 +84,10 @@ function callbackHandler(proxyEvent, context) {
     } else {
       cache.revokeState(state)
         .then(() => {
+          // workaround for DynamoDb - we can't save attributes with empty string values.
+          // Google may return certain attributes as empty string - get rid of the here.
+          delete profile['_raw'];
+
           const id = createUserId(`${profile.provider}-${profile.id}`, providerConfig.token_secret);
           const data = createResponseData(id, providerConfig);
           users.saveUser(Object.assign(profile, { userId: id }))

@@ -3,11 +3,14 @@ service: twain-cloud # NOTE: update this with your service name
 local: ${file(serverless.local.yml)} # local settings
 
 custom:
+  deployment: ${opt:deployment, 'private'} 
+  overrides: ${file(./serverless.deployment.${self:custom.deployment}.yml)}
+
   optimize:
-      global: true
-      debug: false
-      minify: false
-      presets: ['es2016']
+    global: true
+    debug: false
+    minify: false
+    presets: ['es2016']
 
 plugins:
   - serverless-plugin-optimize
@@ -17,36 +20,40 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs6.10
-  stage: dev
-  region: us-east-1
+  runtime: nodejs8.10
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:stage, 'us-east-1'}
   tracing: true # enable X-Ray tracing
 
   environment:
     # General
     SERVICE: ${self:service}
-    STAGE: ${opt:stage, self:provider.stage}
-    REGION: ${opt:region, self:provider.region}
-
-    # TO BE CUSTOMIZED
-    TWAIN_IOT_ENDPOINT: "a23w76das7e02.iot.us-east-1.amazonaws.com"
-    PROVIDER_FACEBOOK_ID: 1392707264191692
-    PROVIDER_FACEBOOK_SECRET: 2edf50a1662a76ddae343251cac89fc6
-
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    
     # Databases
-    TWAIN_SCANNERS_TABLE: ${self:service}-scanners-${self:provider.environment.STAGE}
-    CACHE_DB_NAME: ${self:service}-cache-${self:provider.environment.STAGE}
-    USERS_DB_NAME: ${self:service}-users-${self:provider.environment.STAGE}
+    TWAIN_SCANNERS_TABLE: ${self:service}-scanners-${self:provider.stage}
+    CACHE_DB_NAME: ${self:service}-cache-${self:provider.stage}
+    USERS_DB_NAME: ${self:service}-users-${self:provider.stage}
 
     # TWAIN Cloud
     TWAIN_BUCKET: twain-cloud-bucket-#{AWS::AccountId}
-    TWAIN_API: https://api-twain.hazybits.com/${self:provider.environment.STAGE}
-    TWAIN_WEB: https://twain.hazybits.com
     TWAIN_IOT_ROLE: "twain-role-iot"
+
+    # TO BE CUSTOMIZED
+    TWAIN_IOT_ENDPOINT: ${self:custom.overrides.TWAIN_IOT_ENDPOINT}
+    TWAIN_API: ${self:custom.overrides.TWAIN_API}
+    TWAIN_WEB: ${self:custom.overrides.TWAIN_WEB}
 
     # Auth General
     REDIRECT_CLIENT_URI: ${self:provider.environment.TWAIN_WEB}
     TOKEN_SECRET: token-secret-123
+
+    # Auth Providers
+    PROVIDER_FACEBOOK_ID: ${self:custom.overrides.PROVIDER_FACEBOOK_ID}
+    PROVIDER_FACEBOOK_SECRET: ${self:custom.overrides.PROVIDER_FACEBOOK_SECRET}
+    PROVIDER_GOOGLE_ID: ${self:custom.overrides.PROVIDER_GOOGLE_ID}
+    PROVIDER_GOOGLE_SECRET: ${self:custom.overrides.PROVIDER_GOOGLE_SECRET}
 
   iamRoleStatements:
     - Effect: "Allow"
